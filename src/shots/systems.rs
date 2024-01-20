@@ -1,16 +1,11 @@
-use crate::player::components::{BottomWall, LeftWall, PlayerShip, RightWall, TopWall};
+use crate::player::components::PlayerShip;
 use crate::shots::components::*;
 use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::world;
+use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
+use crate::world::systems as world_systems;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-
-const WEAPON_SPRITE_NAME: &str = "laserGreen02.png";
-
-const DEFAULT_WEAPON: Weapon = Weapon {
-    damage: 25.0,
-    speed: 1500.0,
-};
-const FIRE_DISTANCE_FROM_PLAYER: f32 = 25.0;
 
 pub fn player_fire_weapon(
     mut commands: Commands,
@@ -23,18 +18,20 @@ pub fn player_fire_weapon(
 ) {
     if let Ok((transform, mut weapon_fire_timer)) = player_ship_query.get_single_mut() {
         weapon_fire_timer.timer.tick(time.delta());
+        let weapon = Weapon::default();
+        let sprite_name = weapon.sprite_name.clone();
         if keyboard_input.pressed(KeyCode::Space) || keyboard_input.just_pressed(KeyCode::Space) {
             if weapon_fire_timer.timer.elapsed() >= weapon_fire_timer.fire_delay {
                 weapon_fire_timer.timer.reset();
                 let rotation = transform.rotation.to_scaled_axis();
-                let linvel = Vec2::from_angle(rotation.z).rotate(Vec2::Y) * DEFAULT_WEAPON.speed;
+                let linvel = Vec2::from_angle(rotation.z).rotate(Vec2::Y) * weapon.speed;
                 spawn_weapon_at_position(
                     &mut commands,
                     &asset_server,
                     &mut texture_atlases,
                     &sprite_loader,
-                    WEAPON_SPRITE_NAME,
-                    DEFAULT_WEAPON,
+                    &sprite_name,
+                    weapon,
                     transform,
                     Velocity {
                         linvel,
@@ -55,38 +52,60 @@ fn spawn_weapon_at_position(
     ship_transform: &Transform,
     force: Velocity,
 ) {
-    let texture_handle = asset_server.load(&sprite_loader.file);
-    let sprite = sprite_loader.get_sprite(sprite_name.to_string()).unwrap();
-    let ship_offset = (sprite.x as f32, sprite.y as f32);
-    let texture_atlas = TextureAtlas::from_grid(
-        texture_handle,
-        Vec2::new(sprite.width as f32, sprite.height as f32),
-        1,
-        1,
-        None,
-        Some(Vec2::new(ship_offset.0, ship_offset.1)),
+    let scale = weapon.scale;
+    let density = weapon.density;
+    world_systems::spawn_sprite_frame_at_position(
+        commands,
+        asset_server,
+        texture_atlases,
+        sprite_loader,
+        sprite_name,
+        weapon.frame_cols,
+        weapon.frame_rows,
+        weapon.start_frame,
+        scale,
+        weapon,
+        world::RigidBodyBehaviors::default()
+            .with_velocity(force.clone())
+            .with_density(density),
+        middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)),
+        Some((WeaponFireTimer { ..default() })),
     );
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    let scale = 1.0;
-    commands
-        .spawn((
-            SpriteSheetBundle {
-                texture_atlas: texture_atlas_handle,
-                sprite: TextureAtlasSprite::new(0),
-                ..default()
-            },
-            weapon,
-        ))
-        .insert(RigidBody::Dynamic)
-        .insert(GravityScale(0.0))
-        .insert(Sleeping::disabled())
-        .insert(Ccd::enabled())
-        .insert(Collider::ball(sprite.h_radius()))
-        .insert(ColliderMassProperties::Density(0.001))
-        .insert(Sensor)
-        .insert(middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)))
-        .insert(ActiveEvents::COLLISION_EVENTS)
-        .insert(force);
+    // let texture_handle = asset_server.load(&sprite_loader.file);
+    // let sprite = sprite_loader.get_sprite(sprite_name).unwrap();
+    // let collider = sprite_loader
+    //     .get_sprite_collider(sprite_name, 0, true)
+    //     .unwrap();
+    // let ship_offset = (sprite.x, sprite.y);
+    // let texture_atlas = TextureAtlas::from_grid(
+    //     texture_handle,
+    //     Vec2::new(sprite.width, sprite.height),
+    //     1,
+    //     1,
+    //     None,
+    //     Some(Vec2::new(ship_offset.0, ship_offset.1)),
+    // );
+    // let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    // let scale = 1.0;
+    // commands
+    //     .spawn((
+    //         SpriteSheetBundle {
+    //             texture_atlas: texture_atlas_handle,
+    //             sprite: TextureAtlasSprite::new(0),
+    //             ..default()
+    //         },
+    //         weapon,
+    //     ))
+    //     .insert(RigidBody::Dynamic)
+    //     .insert(GravityScale(0.0))
+    //     .insert(Sleeping::disabled())
+    //     .insert(Ccd::enabled())
+    //     .insert(collider.clone())
+    //     .insert(ColliderMassProperties::Density(0.001))
+    //     .insert(Sensor)
+    //     .insert(middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)))
+    //     .insert(ActiveEvents::COLLISION_EVENTS)
+    //     .insert(force);
 }
 
 fn middle_shot_from_transform(transform: &Transform) -> Transform {

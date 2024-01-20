@@ -18,10 +18,3 @@ impl Plugin for PlayerShipPlugin {
         );
     }
 }
-
-pub struct PlayerWallTransportPlugin;
-impl Plugin for PlayerWallTransportPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_walls);
-    }
-}
