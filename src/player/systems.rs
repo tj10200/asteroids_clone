@@ -11,7 +11,7 @@ use crate::world::systems as world_systems;
 use super::components::*;
 
 pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
-pub const PLAYER_ROTATION_SPEED: f32 = 10.0;
+pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
 pub const PLAYER_ACCELERATION: f32 = 50.0;
 pub const PLAYER_SHIP_DENSITY: f32 = 0.05;
 

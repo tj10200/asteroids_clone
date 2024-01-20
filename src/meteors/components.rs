@@ -1,3 +1,4 @@
+use crate::shots::components::Weapon;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 use rand::distributions::WeightedIndex;
@@ -36,6 +37,7 @@ pub fn random_meteor_sprite_name(meteor_type: MeteorType) -> String {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum MeteorType {
     Big,
     Med,
@@ -52,10 +54,20 @@ impl MeteorType {
             MeteorType::Tiny => 0.01,
         }
     }
+
+    pub fn max_damage(&self) -> f32 {
+        match self {
+            MeteorType::Big => 200f32,
+            MeteorType::Med => 100f32,
+            MeteorType::Small => 50f32,
+            MeteorType::Tiny => 25f32,
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone)]
 pub struct Meteor {
+    meteor_type: MeteorType,
     pub sprite_name: String,
     pub velocity: Velocity,
     pub density: f32,
@@ -63,6 +75,7 @@ pub struct Meteor {
     pub frame_cols: usize,
     pub frame_rows: usize,
     pub start_frame: usize,
+    pub damage: f32,
 }
 
 impl Default for Meteor {
@@ -71,14 +84,27 @@ impl Default for Meteor {
         let speed_x = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let speed_y = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let rotation = rng.gen_range(METEOR_ROTATION_RANGE.0..=METEOR_ROTATION_RANGE.1);
+        let meteor_type = MeteorType::Big;
         Meteor {
+            meteor_type,
             sprite_name: "meteorBrown_big4.png".to_string(), //random_meteor_sprite_name(MeteorType::Big),
             velocity: Velocity::linear(Vec2::new(speed_x, speed_y)),
-            density: MeteorType::density(MeteorType::Big),
-            rotation: rotation,
+            density: MeteorType::density(meteor_type),
+            rotation,
             frame_cols: 1,
             frame_rows: 1,
             start_frame: 0,
+            damage: 0f32,
         }
+    }
+}
+
+impl Meteor {
+    pub fn damage(&mut self, weapon: &Weapon) {
+        self.damage += weapon.damage
+    }
+
+    pub fn destroyed(&self) -> bool {
+        self.damage >= self.meteor_type.max_damage()
     }
 }

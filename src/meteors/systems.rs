@@ -6,10 +6,10 @@ use crate::world::systems as world_systems;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
+use std::process::Command;
 
 use crate::meteors::components::*;
-use crate::player::components::PlayerShip;
-use crate::shots::components::WeaponFireTimer;
+use crate::shots::components::Weapon;
 use rand::random;
 
 pub const NUMBER_OF_METEORS: u32 = 3;
@@ -70,9 +70,11 @@ fn spawn_meteor_helper(
     );
 }
 
-pub fn despawn_meteor(mut commands: Commands, meteor_query: Query<Entity, With<Meteor>>) {
-    if let Ok(entity) = meteor_query.get_single() {
-        _despawn(&mut commands, entity);
+pub fn despawn_meteor(mut commands: Commands, mut meteor_query: Query<(Entity, &Meteor)>) {
+    for (entity, meteor) in meteor_query.iter_mut() {
+        if meteor.destroyed() {
+            _despawn(&mut commands, entity);
+        }
     }
 }
 
@@ -160,6 +162,24 @@ pub fn handle_meteor_intersections_with_wall(
                 transform,
                 None::<SpriteBundle>,
             );
+        }
+    }
+}
+
+pub fn handle_weapon_collision(
+    mut commands: Commands,
+    rapier_context: Res<RapierContext>,
+    mut meteor_query: Query<(Entity, &mut Meteor)>,
+    shot_query: Query<(Entity, &Weapon)>,
+) {
+    for (meteor_entity, mut meteor) in meteor_query.iter_mut() {
+        for (shot_entity, weapon) in shot_query.iter() {
+            if let Some(contact_pair) = rapier_context.contact_pair(meteor_entity, shot_entity) {
+                if contact_pair.has_any_active_contacts() {
+                    commands.entity(shot_entity).despawn();
+                    meteor.damage(weapon);
+                }
+            }
         }
     }
 }
