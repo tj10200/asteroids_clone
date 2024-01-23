@@ -1,7 +1,5 @@
-use bevy::ecs::system::{EntityCommands, Insert};
+use bevy::ecs::system::Insert;
 use bevy::prelude::*;
-use bevy_rapier2d::dynamics::RigidBody;
-use bevy_rapier2d::prelude::ColliderMassProperties::Density;
 use bevy_rapier2d::prelude::*;
 
 pub mod components;
@@ -24,6 +22,8 @@ pub struct RigidBodyBehaviors {
     can_sleep: bool,
     ccd_enabled: bool,
     active_events: ActiveEvents,
+    translation: Vec2,
+    rotation: f32,
     velocity: Option<Velocity>,
     external_force: Option<ExternalForce>,
 }
@@ -33,10 +33,12 @@ impl RigidBodyBehaviors {
         RigidBodyBehaviors {
             body_type: RigidBody::Dynamic,
             gravity: 0.0,
-            mass: ColliderMassProperties::default(),
+            mass: ColliderMassProperties::Density(1.0),
             can_sleep: false,
             ccd_enabled: true,
             active_events: ActiveEvents::COLLISION_EVENTS,
+            translation: Vec2::default(),
+            rotation: 0.0,
             velocity: None,
             external_force: None,
         }
@@ -53,41 +55,51 @@ impl RigidBodyBehaviors {
     }
 
     pub fn with_density(&mut self, d: f32) -> &mut Self {
-        self.mass = Density(d);
+        self.mass = ColliderMassProperties::Density(d);
         self
     }
+
     pub fn add_to_entity(&self, entity: Entity, commands: &mut Commands) {
-        commands.add(Insert {
-            entity,
-            bundle: (
-                self.body_type,
-                GravityScale(self.gravity),
-                if self.can_sleep {
-                    Sleeping::default()
-                } else {
-                    Sleeping::disabled()
-                },
-                if self.ccd_enabled {
-                    Ccd::enabled()
-                } else {
-                    Ccd::disabled()
-                },
-                self.active_events,
-                self.mass,
-            ),
-        });
+        commands
+            .entity(entity)
+            .insert(self.body_type)
+            .insert(GravityScale(self.gravity))
+            .insert(if self.can_sleep {
+                Sleeping::disabled()
+            } else {
+                Sleeping::disabled()
+            })
+            .insert(if self.ccd_enabled {
+                Ccd::enabled()
+            } else {
+                Ccd::disabled()
+            })
+            .insert(self.active_events)
+            .insert(self.mass);
+
+        // commands.entity(entity).insert((
+        //     self.body_type,
+        //     GravityScale(self.gravity),
+        //     if self.can_sleep {
+        //         Sleeping::default()
+        //     } else {
+        //         Sleeping::disabled()
+        //     },
+        //     if self.ccd_enabled {
+        //         Ccd::enabled()
+        //     } else {
+        //         Ccd::disabled()
+        //     },
+        //     self.active_events,
+        //     self.mass,
+        // ));
 
         if let Some(velocity) = self.velocity {
-            commands.add(Insert {
-                entity,
-                bundle: velocity,
-            });
+            commands.entity(entity).insert(velocity);
         }
+
         if let Some(external_force) = self.external_force {
-            commands.add(Insert {
-                entity,
-                bundle: external_force,
-            });
+            commands.entity(entity).insert(external_force);
         }
     }
 }

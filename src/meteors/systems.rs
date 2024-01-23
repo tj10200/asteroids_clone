@@ -6,11 +6,11 @@ use crate::world::systems as world_systems;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
-use std::process::Command;
+use std::f32::consts::PI;
 
 use crate::meteors::components::*;
 use crate::shots::components::Weapon;
-use rand::random;
+use rand::{random, thread_rng, Rng};
 
 pub const NUMBER_OF_METEORS: u32 = 3;
 
@@ -26,7 +26,7 @@ pub fn spawn_meteors(
     for i in 0..=NUMBER_OF_METEORS {
         let meteor = Meteor::default();
 
-        spawn_meteor_helper(
+        spawn_meteor_at_random_location(
             &mut commands,
             &asset_server,
             &mut texture_atlases,
@@ -37,7 +37,7 @@ pub fn spawn_meteors(
     }
 }
 
-fn spawn_meteor_helper(
+fn spawn_meteor_at_random_location(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
@@ -45,12 +45,29 @@ fn spawn_meteor_helper(
     window: &Window,
     meteor: Meteor,
 ) {
-    let sprite_name = &meteor.sprite_name.clone();
-    let density = meteor.density;
-    let mut velocity = meteor.velocity.clone();
-    velocity.angvel = meteor.rotation;
     let random_x = random::<f32>() * window.width();
     let random_y = random::<f32>() * window.height();
+    spawn_meteor_at_position(
+        commands,
+        asset_server,
+        texture_atlases,
+        sprite_loader,
+        meteor,
+        Vec2::new(random_x, random_y),
+    )
+}
+
+fn spawn_meteor_at_position(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
+    sprite_loader: &Res<XMLSpriteSheetLoader>,
+    meteor: Meteor,
+    translation: Vec2,
+) {
+    let sprite_name = &meteor.sprite_name.clone();
+    let density = meteor.density;
+    let velocity = meteor.velocity.clone();
     world_systems::spawn_sprite_frame_at_position(
         commands,
         asset_server,
@@ -65,15 +82,96 @@ fn spawn_meteor_helper(
         world::RigidBodyBehaviors::default()
             .with_velocity(velocity)
             .with_density(density),
-        Transform::from_xyz(random_x, random_y, 0.0),
+        Transform::from_xyz(translation.x, translation.y, 0.0),
         None::<SpriteBundle>,
     );
 }
 
-pub fn despawn_meteor(mut commands: Commands, mut meteor_query: Query<(Entity, &Meteor)>) {
-    for (entity, meteor) in meteor_query.iter_mut() {
+// scale can be relative speed or distance from origin
+fn rotation_relative_vector(origin: Vec2, rotation_radians: f32, scale: f32) -> Vec2 {
+    let dx = rotation_radians.cos() * scale;
+    let dy = rotation_radians.sin() * scale;
+
+    Vec2::new(dx, dy)
+}
+
+fn explode_meteor(
+    origin: Vec2,
+    num_fragments: usize,
+    explosion_radius: f32,
+    max_speed: f32,
+) -> Vec<(Vec2, Vec2)> {
+    let mut rng = rand::thread_rng();
+    let mut fragments = Vec::new();
+
+    for _ in 0..num_fragments {
+        let angle = rng.gen_range(0.0..2.0 * PI);
+        let distance = rng.gen_range(0.0..explosion_radius);
+        let speed = rng.gen_range(0.5 * max_speed..max_speed);
+
+        // Calculate the starting position of the fragment
+        let start_x = origin.x + distance * angle.cos();
+        let start_y = origin.y + distance * angle.sin();
+        let start_position = Vec2::new(start_x, start_y);
+
+        // Calculate the velocity of the fragment
+        let velocity_x = speed * angle.cos();
+        let velocity_y = speed * angle.sin();
+        let velocity = Vec2::new(velocity_x, velocity_y);
+
+        fragments.push((start_position, velocity));
+    }
+
+    fragments
+}
+
+fn create_new_meteors_after_destruction(
+    meteor: &Meteor,
+    transform: &Transform,
+    sprite_loader: &Res<XMLSpriteSheetLoader>,
+) -> Vec<(Meteor, Vec2)> {
+    let meteor_sprite = sprite_loader.get_sprite(&meteor.sprite_name).unwrap();
+    let mut breakup_meteors = meteor.spawn_next_size();
+    let mut res = vec![];
+    for (i, (position, velocity)) in explode_meteor(
+        Vec2::new(transform.translation.x, transform.translation.y),
+        breakup_meteors.len(),
+        meteor_sprite.width,
+        METEOR_SPEED_RANGE.1,
+    )
+    .iter()
+    .enumerate()
+    {
+        breakup_meteors[i].velocity = Velocity::linear(*velocity);
+        res.push((breakup_meteors[i].to_owned(), *position))
+    }
+    res
+}
+
+pub fn despawn_meteor(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    sprite_loader: Res<XMLSpriteSheetLoader>,
+    mut meteor_query: Query<(Entity, &Meteor, &Transform)>,
+) {
+    for (entity, meteor, transform) in meteor_query.iter_mut() {
         if meteor.destroyed() {
             _despawn(&mut commands, entity);
+
+            for new_meteors in
+                create_new_meteors_after_destruction(meteor, transform, &sprite_loader).iter()
+            {
+                spawn_meteor_at_position(
+                    &mut commands,
+                    &asset_server,
+                    &mut texture_atlases,
+                    &sprite_loader,
+                    new_meteors.0.clone(),
+                    new_meteors.1,
+                )
+            }
         }
     }
 }

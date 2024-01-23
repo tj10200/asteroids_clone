@@ -1,12 +1,17 @@
 use crate::shots::components::Weapon;
+use crate::world::RigidBodyBehaviors;
+use bevy::a11y::accesskit::Role::Meter;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
+use bevy_rapier2d::rapier::prelude::RigidBodyBuilder;
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::{thread_rng, Rng};
 
 pub const METEOR_SPEED_RANGE: (f32, f32) = (-35.0, 35.0);
 pub const METEOR_ROTATION_RANGE: (f32, f32) = (-3.0, 3.0);
+
+pub const NUM_METEORS_TO_SPAWN_ON_DESTRUCTION: u32 = 3;
 
 pub fn random_meteor_sprite_name(meteor_type: MeteorType) -> String {
     let mut rng = thread_rng();
@@ -15,24 +20,24 @@ pub fn random_meteor_sprite_name(meteor_type: MeteorType) -> String {
             let items = [("1", 4), ("2", 3), ("3", 3), ("4", 2)];
             let dist = WeightedIndex::new(items.iter().map(|item| item.1)).unwrap();
 
-            format!("meteorBrown_big{}.png", items[dist.sample(&mut rng)].1).to_string()
+            format!("meteorBrown_big{}.png", items[dist.sample(&mut rng)].0).to_string()
         }
         MeteorType::Med => {
             let items = [("1", 4), ("3", 3)];
             let dist = WeightedIndex::new(items.iter().map(|item| item.1)).unwrap();
 
-            format!("meteorBrown_med{}.png", items[dist.sample(&mut rng)].1).to_string()
+            format!("meteorBrown_med{}.png", items[dist.sample(&mut rng)].0).to_string()
         }
         MeteorType::Small => {
             let items = [("1", 5), ("2", 5)];
             let dist = WeightedIndex::new(items.iter().map(|item| item.1)).unwrap();
 
-            format!("meteorBrown_small{}.png", items[dist.sample(&mut rng)].1).to_string()
+            format!("meteorBrown_small{}.png", items[dist.sample(&mut rng)].0).to_string()
         }
         MeteorType::Tiny => {
             let items = [("1", 2), ("2", 1)];
             let dist = WeightedIndex::new(items.iter().map(|item| item.1)).unwrap();
-            format!("meteorBrown_tiny{}.png", items[dist.sample(&mut rng)].1).to_string()
+            format!("meteorBrown_tiny{}.png", items[dist.sample(&mut rng)].0).to_string()
         }
     }
 }
@@ -63,6 +68,15 @@ impl MeteorType {
             MeteorType::Tiny => 25f32,
         }
     }
+
+    pub fn next_size(&self) -> Self {
+        match self {
+            MeteorType::Big => MeteorType::Med,
+            MeteorType::Med => MeteorType::Small,
+            MeteorType::Small => MeteorType::Tiny,
+            MeteorType::Tiny => MeteorType::Tiny,
+        }
+    }
 }
 
 #[derive(Component, Debug, Clone)]
@@ -80,14 +94,19 @@ pub struct Meteor {
 
 impl Default for Meteor {
     fn default() -> Self {
+        Meteor::new(MeteorType::Big)
+    }
+}
+
+impl Meteor {
+    pub fn new(meteor_type: MeteorType) -> Meteor {
         let mut rng = thread_rng();
         let speed_x = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let speed_y = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let rotation = rng.gen_range(METEOR_ROTATION_RANGE.0..=METEOR_ROTATION_RANGE.1);
-        let meteor_type = MeteorType::Big;
         Meteor {
             meteor_type,
-            sprite_name: "meteorBrown_big4.png".to_string(), //random_meteor_sprite_name(MeteorType::Big),
+            sprite_name: random_meteor_sprite_name(meteor_type),
             velocity: Velocity::linear(Vec2::new(speed_x, speed_y)),
             density: MeteorType::density(meteor_type),
             rotation,
@@ -97,14 +116,24 @@ impl Default for Meteor {
             damage: 0f32,
         }
     }
-}
-
-impl Meteor {
     pub fn damage(&mut self, weapon: &Weapon) {
         self.damage += weapon.damage
     }
 
     pub fn destroyed(&self) -> bool {
         self.damage >= self.meteor_type.max_damage()
+    }
+
+    pub fn spawn_next_size(&self) -> Vec<Meteor> {
+        match self.meteor_type {
+            MeteorType::Tiny => return vec![],
+            _ => {}
+        };
+
+        let mut vec = Vec::new();
+        for i in 0..=NUM_METEORS_TO_SPAWN_ON_DESTRUCTION {
+            vec.push(Meteor::new(self.meteor_type.next_size()))
+        }
+        vec
     }
 }
