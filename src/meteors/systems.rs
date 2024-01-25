@@ -13,6 +13,7 @@ use crate::shots::components::Weapon;
 use rand::{random, thread_rng, Rng};
 
 pub const NUMBER_OF_METEORS: u32 = 3;
+pub const METEORS_SCALE: f32 = 0.3;
 
 pub fn spawn_meteors(
     mut commands: Commands,
@@ -77,7 +78,7 @@ fn spawn_meteor_at_position(
         meteor.frame_cols,
         meteor.frame_rows,
         meteor.start_frame,
-        1.0,
+        METEORS_SCALE,
         meteor,
         world::RigidBodyBehaviors::default()
             .with_velocity(velocity)
@@ -252,7 +253,7 @@ pub fn handle_meteor_intersections_with_wall(
                 meteor.frame_cols,
                 meteor.frame_rows,
                 meteor.start_frame,
-                1.0,
+                METEORS_SCALE,
                 meteor,
                 world::RigidBodyBehaviors::default()
                     .with_velocity(velocity)

@@ -8,7 +8,7 @@ use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::{thread_rng, Rng};
 
-pub const METEOR_SPEED_RANGE: (f32, f32) = (-35.0, 35.0);
+pub const METEOR_SPEED_RANGE: (f32, f32) = (-5.0, 5.0);
 pub const METEOR_ROTATION_RANGE: (f32, f32) = (-3.0, 3.0);
 
 pub const NUM_METEORS_TO_SPAWN_ON_DESTRUCTION: u32 = 3;

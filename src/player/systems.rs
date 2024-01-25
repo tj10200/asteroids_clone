@@ -14,8 +14,9 @@ use super::components::*;
 
 pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
 pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
-pub const PLAYER_ACCELERATION: f32 = 50.0;
-pub const PLAYER_SHIP_DENSITY: f32 = 0.05;
+pub const PLAYER_ACCELERATION: f32 = 35.0;
+pub const PLAYER_SHIP_DENSITY: f32 = 1.;
+pub const PLAYER_SHIP_SCALE: f32 = 0.4;
 
 pub fn spawn_ship(
     mut commands: Commands,
@@ -34,7 +35,7 @@ pub fn spawn_ship(
         1,
         1,
         0,
-        1.0,
+        PLAYER_SHIP_SCALE,
         PlayerShip {
             density: PLAYER_SHIP_DENSITY,
         },
@@ -170,7 +171,7 @@ pub fn handle_player_intersections_with_wall(
                 1,
                 1,
                 0,
-                1.0,
+                PLAYER_SHIP_SCALE,
                 PlayerShip {
                     density: PLAYER_SHIP_DENSITY,
                 },
