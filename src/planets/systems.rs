@@ -1,12 +1,9 @@
 use super::{MAIN_PLANET_DENSITY, MAIN_PLANET_RADIUS};
 use crate::meteors::components::Meteor;
 use crate::player::components::PlayerShip;
-use bevy::asset::TrackAssets;
-use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_rapier2d::dynamics::ExternalForce;
-use bevy_rapier2d::prelude::{ColliderMassProperties, ExternalImpulse, Velocity};
+use bevy_rapier2d::prelude::*;
 
 use super::components::*;
 
@@ -16,13 +13,21 @@ pub fn spawn_planets(
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let window = window_query.get_single().unwrap();
-    let planet = Planet::new(
-        Vec2::new(window.width() / 2., window.height() / 2.),
-        MAIN_PLANET_RADIUS,
-        MAIN_PLANET_DENSITY,
-    );
-    gizmos.circle_2d(planet.coordinates.clone(), planet.radius, Color::SILVER);
-    commands.spawn(planet);
+    let coordinates = Vec2::new(window.width() / 2., window.height() / 2.);
+    let radius = MAIN_PLANET_RADIUS;
+    let planet = Planet::new(coordinates.clone(), radius, MAIN_PLANET_DENSITY);
+    gizmos.circle_2d(coordinates.clone(), planet.radius, Color::SILVER);
+    commands
+        .spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(coordinates.x, coordinates.y, 0.),
+
+                ..default()
+            },
+            planet,
+        ))
+        .insert(RigidBody::Fixed)
+        .insert(Collider::ball(radius));
 }
 
 pub fn simulate_meteor_gravity_toward_planets(

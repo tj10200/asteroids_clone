@@ -6,7 +6,7 @@ mod systems;
 use systems::*;
 
 pub const MAIN_PLANET_RADIUS: f32 = 100.;
-pub const MAIN_PLANET_DENSITY: f32 = 100.;
+pub const MAIN_PLANET_DENSITY: f32 = 20.;
 
 pub struct PlanetsPlugin;
 
