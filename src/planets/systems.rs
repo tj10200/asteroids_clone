@@ -7,27 +7,33 @@ use bevy_rapier2d::prelude::*;
 
 use super::components::*;
 
-pub fn spawn_planets(
-    mut commands: Commands,
-    mut gizmos: Gizmos,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-) {
+pub fn spawn_planets(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
     let coordinates = Vec2::new(window.width() / 2., window.height() / 2.);
     let radius = MAIN_PLANET_RADIUS;
-    let planet = Planet::new(coordinates.clone(), radius, MAIN_PLANET_DENSITY);
-    gizmos.circle_2d(coordinates.clone(), planet.radius, Color::SILVER);
+    let planet = Planet::new(
+        coordinates.clone(),
+        radius,
+        MAIN_PLANET_DENSITY,
+        Color::SEA_GREEN,
+    );
     commands
         .spawn((
             SpriteBundle {
                 transform: Transform::from_xyz(coordinates.x, coordinates.y, 0.),
-
                 ..default()
             },
             planet,
         ))
         .insert(RigidBody::Fixed)
         .insert(Collider::ball(radius));
+}
+
+pub fn render_planets(mut gizmos: Gizmos, planet_query: Query<&Planet>) {
+    for planet in planet_query.iter() {
+        let planet = planet.clone();
+        gizmos.circle_2d(planet.coordinates, planet.radius, planet.color);
+    }
 }
 
 pub fn simulate_meteor_gravity_toward_planets(

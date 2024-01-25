@@ -8,14 +8,16 @@ pub struct Planet {
     pub coordinates: Vec2,
     pub radius: f32,
     pub density: f32,
+    pub color: Color,
 }
 
 impl Planet {
-    pub fn new(coordinates: Vec2, radius: f32, density: f32) -> Self {
+    pub fn new(coordinates: Vec2, radius: f32, density: f32, color: Color) -> Self {
         Planet {
             coordinates,
             radius,
             density,
+            color,
         }
     }
     pub fn gravity(&self, other_density: f32) -> f32 {

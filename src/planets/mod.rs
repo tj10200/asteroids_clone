@@ -12,10 +12,10 @@ pub struct PlanetsPlugin;
 
 impl Plugin for PlanetsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_systems(Startup, spawn_planets).add_systems(
             Update,
             (
-                spawn_planets,
+                render_planets,
                 simulate_meteor_gravity_toward_planets,
                 simulate_player_gravity_toward_planets,
             ),
