@@ -1,6 +1,7 @@
 use bevy::ecs::system::Insert;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::rapier::prelude::{RigidBodyBuilder, RigidBodySet};
 
 pub mod components;
 pub mod systems;

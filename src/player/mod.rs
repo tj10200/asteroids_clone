@@ -7,6 +7,8 @@ use systems::*;
 
 pub struct PlayerShipPlugin;
 
+pub const PLAYER_SHIP_DENSITY: f32 = 1.0;
+
 impl Plugin for PlayerShipPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_ship).add_systems(

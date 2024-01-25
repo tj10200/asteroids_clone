@@ -35,12 +35,14 @@ pub fn spawn_ship(
         1,
         0,
         1.0,
-        PlayerShip {},
+        PlayerShip {
+            density: PLAYER_SHIP_DENSITY,
+        },
         world::RigidBodyBehaviors::default()
             .with_velocity(Velocity::zero())
             .with_external_force(ExternalForce::default())
             .with_density(PLAYER_SHIP_DENSITY),
-        Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+        Transform::from_xyz(window.width() / 3., window.height() / 3., 0.0),
         Some((WeaponFireTimer { ..default() })),
     );
 }
@@ -169,7 +171,9 @@ pub fn handle_player_intersections_with_wall(
                 1,
                 0,
                 1.0,
-                PlayerShip {},
+                PlayerShip {
+                    density: PLAYER_SHIP_DENSITY,
+                },
                 world::RigidBodyBehaviors::default()
                     .with_velocity(velocity.clone())
                     .with_external_force(external_force.clone())
