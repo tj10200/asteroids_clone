@@ -140,10 +140,16 @@ impl XMLSpriteSheetLoader {
     }
 }
 
+#[derive(Deserialize, Serialize, Clone)]
+enum ColliderType {
+    Triangle(Vect, Vect, Vect),
+    Polyline(Vec<Vect>),
+}
+
 #[derive(Serialize, Clone)]
 struct Shape {
     name: String,
-    points: Vec<Vect>,
+    shape: ColliderType,
 }
 
 impl<'de> Deserialize<'de> for Shape {
@@ -154,6 +160,7 @@ impl<'de> Deserialize<'de> for Shape {
         #[derive(Deserialize)]
         struct Helper {
             name: String,
+            shape: String,
             points: Vec<Vec<i32>>,
         }
 
@@ -162,10 +169,14 @@ impl<'de> Deserialize<'de> for Shape {
             .points
             .into_iter()
             .map(|p| Vect::new(p[0] as f32, p[1] as f32))
-            .collect();
+            .collect::<Vec<Vect>>();
+        let shape_type = match helper.shape.as_ref() {
+            "triangle" => ColliderType::Triangle(points[0], points[1], points[2]),
+            _ => ColliderType::Polyline(points),
+        };
         Ok(Shape {
             name: helper.name,
-            points,
+            shape: shape_type,
         })
     }
 }
@@ -173,10 +184,9 @@ impl<'de> Deserialize<'de> for Shape {
 impl Shape {
     pub fn get_points(&self, sprite: &Sprite, to_origin: bool) -> Vec<Vect> {
         if !to_origin {
-            return self.points.clone();
+            return self.get_collider_type_points();
         }
-        self.points
-            .clone()
+        self.get_collider_type_points()
             .into_iter()
             .map(|p| {
                 Vec2::new(
@@ -185,6 +195,13 @@ impl Shape {
                 )
             })
             .collect()
+    }
+
+    fn get_collider_type_points(&self) -> Vec<Vect> {
+        match self.shape.clone() {
+            ColliderType::Triangle(a, b, c) => vec![a, b, c],
+            ColliderType::Polyline(v) => v,
+        }
     }
 }
 
@@ -231,12 +248,24 @@ impl SpriteShapes {
         let mut compound_shapes = Vec::new();
         if let Some(frame) = self.frames.get(&frame) {
             for shape in &frame.shapes {
-                if let Some(convex_shape) =
-                    Collider::convex_polyline(shape.get_points(sprite, to_origin))
-                {
-                    // Assuming each shape is placed at the origin (0.0, 0.0) of the compound collider.
-                    // You can adjust the position of each shape within the compound collider as needed.
-                    compound_shapes.push((Vec2::new(0.0, 0.0), 0.0, convex_shape));
+                match shape.clone().shape {
+                    ColliderType::Triangle(_, _, _) => {
+                        let points = shape.get_points(sprite, to_origin);
+                        compound_shapes.push((
+                            Vec2::new(0.0, 0.0),
+                            0.0,
+                            Collider::triangle(points[0], points[1], points[2]),
+                        ))
+                    }
+                    ColliderType::Polyline(_) => {
+                        if let Some(convex_shape) =
+                            Collider::convex_polyline(shape.get_points(sprite, to_origin))
+                        {
+                            // Assuming each shape is placed at the origin (0.0, 0.0) of the compound collider.
+                            // You can adjust the position of each shape within the compound collider as needed.
+                            compound_shapes.push((Vec2::new(0.0, 0.0), 0.0, convex_shape));
+                        }
+                    }
                 }
             }
             if compound_shapes.len() > 0 {
@@ -349,12 +378,12 @@ mod tests {
                             frame: 0,
                             shapes: vec![Shape {
                                 name: "shape".to_string(),
-                                points: vec![
+                                shape: ColliderType::Polyline(vec![
                                     Vect::new(0., 0.),
                                     Vect::new(1., 0.),
                                     Vect::new(0., 1.),
                                     Vect::new(1., 1.),
-                                ],
+                                ]),
                             }],
                         },
                     )]),

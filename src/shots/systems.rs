@@ -69,7 +69,7 @@ fn spawn_weapon_at_position(
             .with_velocity(force.clone())
             .with_density(density),
         middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)),
-        Some((WeaponFireTimer { ..default() })),
+        Some((WeaponFireTimer { ..default() }, Sensor)),
     );
     // let texture_handle = asset_server.load(&sprite_loader.file);
     // let sprite = sprite_loader.get_sprite(sprite_name).unwrap();

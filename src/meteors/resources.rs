@@ -1,4 +1,5 @@
-pub const METEOR_SPAWN_TIME: f32 = 5.0;
+use super::*;
+
 #[derive(Resource)]
 pub struct MeteorSpawnTimer {
     pub timer: Timer,

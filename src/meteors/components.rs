@@ -1,17 +1,11 @@
 use crate::shots::components::Weapon;
-use crate::world::RigidBodyBehaviors;
-use bevy::a11y::accesskit::Role::Meter;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
-use bevy_rapier2d::rapier::prelude::RigidBodyBuilder;
 use rand::distributions::WeightedIndex;
 use rand::prelude::Distribution;
 use rand::{thread_rng, Rng};
 
-pub const METEOR_SPEED_RANGE: (f32, f32) = (-5.0, 5.0);
-pub const METEOR_ROTATION_RANGE: (f32, f32) = (-3.0, 3.0);
-
-pub const NUM_METEORS_TO_SPAWN_ON_DESTRUCTION: u32 = 3;
+use super::*;
 
 pub fn random_meteor_sprite_name(meteor_type: MeteorType) -> String {
     let mut rng = thread_rng();
@@ -34,11 +28,6 @@ pub fn random_meteor_sprite_name(meteor_type: MeteorType) -> String {
 
             format!("meteorBrown_small{}.png", items[dist.sample(&mut rng)].0).to_string()
         }
-        MeteorType::Tiny => {
-            let items = [("1", 2), ("2", 1)];
-            let dist = WeightedIndex::new(items.iter().map(|item| item.1)).unwrap();
-            format!("meteorBrown_tiny{}.png", items[dist.sample(&mut rng)].0).to_string()
-        }
     }
 }
 
@@ -47,16 +36,14 @@ pub enum MeteorType {
     Big,
     Med,
     Small,
-    Tiny,
 }
 
 impl MeteorType {
     pub fn density(meteor_type: MeteorType) -> f32 {
         match meteor_type {
-            MeteorType::Big => 1.5,
-            MeteorType::Med => 0.1,
-            MeteorType::Small => 0.1,
-            MeteorType::Tiny => 0.01,
+            MeteorType::Big => 100.,
+            MeteorType::Med => 80.,
+            MeteorType::Small => 50.,
         }
     }
 
@@ -65,7 +52,6 @@ impl MeteorType {
             MeteorType::Big => 200f32,
             MeteorType::Med => 100f32,
             MeteorType::Small => 50f32,
-            MeteorType::Tiny => 25f32,
         }
     }
 
@@ -73,8 +59,7 @@ impl MeteorType {
         match self {
             MeteorType::Big => MeteorType::Med,
             MeteorType::Med => MeteorType::Small,
-            MeteorType::Small => MeteorType::Tiny,
-            MeteorType::Tiny => MeteorType::Tiny,
+            MeteorType::Small => MeteorType::Small,
         }
     }
 }
@@ -126,7 +111,7 @@ impl Meteor {
 
     pub fn spawn_next_size(&self) -> Vec<Meteor> {
         match self.meteor_type {
-            MeteorType::Tiny => return vec![],
+            MeteorType::Small => return vec![],
             _ => {}
         };
 

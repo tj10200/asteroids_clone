@@ -3,17 +3,16 @@ use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
 use crate::world;
 use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
 use crate::world::systems as world_systems;
+use bevy::a11y::accesskit::Role::Meter;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 
+use super::*;
 use crate::meteors::components::*;
 use crate::shots::components::Weapon;
-use rand::{random, thread_rng, Rng};
-
-pub const NUMBER_OF_METEORS: u32 = 3;
-pub const METEORS_SCALE: f32 = 0.3;
+use rand::{random, Rng};
 
 pub fn spawn_meteors(
     mut commands: Commands,
@@ -265,20 +264,60 @@ pub fn handle_meteor_intersections_with_wall(
     }
 }
 
+// pub fn handle_weapon_collision(
+//     mut commands: Commands,
+//     rapier_context: Res<RapierContext>,
+//     mut meteor_query: Query<(Entity, &mut Meteor)>,
+//     shot_query: Query<(Entity, &Weapon)>,
+// ) {
+//     for (meteor_entity, mut meteor) in meteor_query.iter_mut() {
+//         for (shot_entity, weapon) in shot_query.iter() {
+//             // if let Some(contact_pair) = rapier_context.contact_pair(meteor_entity, shot_entity) {
+//             if rapier_context.intersection_pair(meteor_entity, shot_entity) == Some(true) {
+//                 commands.entity(shot_entity).despawn();
+//                 meteor.damage(weapon);
+//             }
+//         }
+//     }
+// }
 pub fn handle_weapon_collision(
     mut commands: Commands,
-    rapier_context: Res<RapierContext>,
-    mut meteor_query: Query<(Entity, &mut Meteor)>,
-    shot_query: Query<(Entity, &Weapon)>,
+    mut collision_events: EventReader<CollisionEvent>,
+    shot_query: Query<&Weapon>,
+    mut meteor_query: Query<&mut Meteor>,
 ) {
-    for (meteor_entity, mut meteor) in meteor_query.iter_mut() {
-        for (shot_entity, weapon) in shot_query.iter() {
-            if let Some(contact_pair) = rapier_context.contact_pair(meteor_entity, shot_entity) {
-                if contact_pair.has_any_active_contacts() {
-                    commands.entity(shot_entity).despawn();
-                    meteor.damage(weapon);
-                }
+    for collision_event in collision_events.read() {
+        if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
+            let (shot_entity, shot, other_entity) = if shot_query.get(*entity1).is_ok() {
+                (*entity1, shot_query.get(*entity1).unwrap(), *entity2)
+            } else if shot_query.get(*entity2).is_ok() {
+                (*entity2, shot_query.get(*entity2).unwrap(), *entity1)
+            } else {
+                continue;
+            };
+
+            if let Ok(mut meteor) = meteor_query.get_mut(other_entity) {
+                meteor.damage(shot);
+                commands.entity(shot_entity).despawn();
             }
+            // Handle the bullet impact, e.g., apply damage, play sound, etc.
+            // Remove the bullet from the game
         }
+    }
+}
+
+pub fn constrain_meteor_velocity(mut meteor_query: Query<&mut Velocity, With<Meteor>>) {
+    let (min, max) = METEOR_SPEED_RANGE;
+    for mut velocity in meteor_query.iter_mut() {
+        velocity.linvel.x = match velocity.linvel.x {
+            x if x < min => min,
+            x if x > max => max,
+            x => x,
+        };
+        velocity.linvel.y = match velocity.linvel.y {
+            y if y < min => min,
+            y if y > max => max,
+            y => y,
+        };
     }
 }
