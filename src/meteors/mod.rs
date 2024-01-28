@@ -13,6 +13,7 @@ pub const METEOR_ROTATION_RANGE: (f32, f32) = (-3.0, 3.0);
 
 pub const NUM_METEORS_TO_SPAWN_ON_DESTRUCTION: u32 = 3;
 pub const METEOR_SPAWN_TIME: f32 = 5.0;
+pub const CHANCE_TO_SPAWN_METEOR_ON_DESTRUCTION: f32 = 0.3;
 
 pub struct MeteorPlugin;
 

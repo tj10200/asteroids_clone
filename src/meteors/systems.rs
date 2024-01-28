@@ -264,22 +264,6 @@ pub fn handle_meteor_intersections_with_wall(
     }
 }
 
-// pub fn handle_weapon_collision(
-//     mut commands: Commands,
-//     rapier_context: Res<RapierContext>,
-//     mut meteor_query: Query<(Entity, &mut Meteor)>,
-//     shot_query: Query<(Entity, &Weapon)>,
-// ) {
-//     for (meteor_entity, mut meteor) in meteor_query.iter_mut() {
-//         for (shot_entity, weapon) in shot_query.iter() {
-//             // if let Some(contact_pair) = rapier_context.contact_pair(meteor_entity, shot_entity) {
-//             if rapier_context.intersection_pair(meteor_entity, shot_entity) == Some(true) {
-//                 commands.entity(shot_entity).despawn();
-//                 meteor.damage(weapon);
-//             }
-//         }
-//     }
-// }
 pub fn handle_weapon_collision(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,

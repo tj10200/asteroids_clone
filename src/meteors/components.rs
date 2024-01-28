@@ -1,7 +1,8 @@
 use crate::shots::components::Weapon;
+use bevy::prelude::KeyCode::M;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
-use rand::distributions::WeightedIndex;
+use rand::distributions::{Uniform, WeightedIndex};
 use rand::prelude::Distribution;
 use rand::{thread_rng, Rng};
 
@@ -56,8 +57,16 @@ impl MeteorType {
     }
 
     pub fn next_size(&self) -> Self {
+        let mut rng = thread_rng();
+
         match self {
-            MeteorType::Big => MeteorType::Med,
+            MeteorType::Big => {
+                let size_distributions = [(MeteorType::Med, 2), (MeteorType::Small, 1)];
+                let weighted_index =
+                    WeightedIndex::new(size_distributions.iter().map(|item| item.1)).unwrap();
+
+                size_distributions[weighted_index.sample(&mut rng)].0
+            }
             MeteorType::Med => MeteorType::Small,
             MeteorType::Small => MeteorType::Small,
         }
@@ -116,8 +125,13 @@ impl Meteor {
         };
 
         let mut vec = Vec::new();
+        let mut rng = thread_rng();
+        let range = Uniform::from(0.01f32..1f32);
         for i in 0..=NUM_METEORS_TO_SPAWN_ON_DESTRUCTION {
-            vec.push(Meteor::new(self.meteor_type.next_size()))
+            let chance = range.sample(&mut rng);
+            if chance >= CHANCE_TO_SPAWN_METEOR_ON_DESTRUCTION {
+                vec.push(Meteor::new(self.meteor_type.next_size()))
+            }
         }
         vec
     }
