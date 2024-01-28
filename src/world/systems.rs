@@ -158,6 +158,6 @@ pub fn handle_mapping_cursor_to_world(
         .map(|ray| ray.origin.truncate())
     {
         coords.0 = world_position;
-        eprintln!("World coords: {}/{}", world_position.x, world_position.y);
+        // eprintln!("World coords: {}/{}", world_position.x, world_position.y);
     }
 }
