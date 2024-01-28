@@ -4,6 +4,10 @@ use std::time::Duration;
 
 pub const DEFAULT_WEAPON_FIRE_DELAY: Duration = Duration::from_millis(150);
 const DEFAULT_WEAPON_SPRITE_NAME: &str = "laserGreen02.png";
+const DEFAULT_WEAPON_DAMAGE: f32 = 25.;
+const DEFAULT_WEAPON_SPEED: f32 = 1500.;
+const DEFAULT_WEAPON_SCALE: f32 = 0.5;
+
 pub const FIRE_DISTANCE_FROM_PLAYER: f32 = 25.0;
 const SHOT_DENSITY: f32 = 0.001;
 
@@ -23,10 +27,10 @@ impl Default for Weapon {
     fn default() -> Self {
         Weapon {
             sprite_name: DEFAULT_WEAPON_SPRITE_NAME.to_string(),
-            damage: 25.0,
-            speed: 1500.0,
+            damage: DEFAULT_WEAPON_DAMAGE,
+            speed: DEFAULT_WEAPON_SPEED,
             density: SHOT_DENSITY,
-            scale: 1.0,
+            scale: DEFAULT_WEAPON_SCALE,
             frame_cols: 1,
             frame_rows: 1,
             start_frame: 0,
