@@ -13,6 +13,7 @@ pub fn player_fire_weapon(
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     sprite_loader: Res<XMLSpriteSheetLoader>,
     keyboard_input: Res<Input<KeyCode>>,
+    mouse_input: Res<Input<MouseButton>>,
     mut player_ship_query: Query<(&Transform, &mut WeaponFireTimer), With<PlayerShip>>,
     time: Res<Time>,
 ) {
@@ -20,7 +21,11 @@ pub fn player_fire_weapon(
         weapon_fire_timer.timer.tick(time.delta());
         let weapon = Weapon::default();
         let sprite_name = weapon.sprite_name.clone();
-        if keyboard_input.pressed(KeyCode::Space) || keyboard_input.just_pressed(KeyCode::Space) {
+        if keyboard_input.pressed(KeyCode::Space)
+            || keyboard_input.just_pressed(KeyCode::Space)
+            || mouse_input.pressed(MouseButton::Left)
+            || mouse_input.just_pressed(MouseButton::Left)
+        {
             if weapon_fire_timer.timer.elapsed() >= weapon_fire_timer.fire_delay {
                 weapon_fire_timer.timer.reset();
                 let rotation = transform.rotation.to_scaled_axis();

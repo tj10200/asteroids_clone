@@ -9,6 +9,19 @@ use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
 use crate::world::RigidBodyBehaviors;
 
 use super::components::*;
+use super::resources::*;
+
+pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
+    let window = window_query.get_single().unwrap();
+
+    commands.spawn((
+        Camera2dBundle {
+            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+            ..default()
+        },
+        MainCamera {},
+    ));
+}
 
 pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
     let window = window_query.get_single().unwrap();
@@ -120,5 +133,31 @@ pub fn spawn_sprite_frame_at_position<T: Component, B: Bundle>(
             entity: spawned,
             bundle: extras,
         });
+    }
+}
+
+pub fn handle_mapping_cursor_to_world(
+    mut coords: ResMut<WorldCoordinates>,
+    // query to get the window (so we can read the current cursor position)
+    q_window: Query<&Window, With<PrimaryWindow>>,
+    // query to get camera transform
+    q_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+) {
+    // get the camera info and transform
+    // assuming there is exactly one main camera entity, so Query::single() is OK
+    let (camera, camera_transform) = q_camera.single();
+
+    // There is only one primary window, so we can similarly get it from the query:
+    let window = q_window.single();
+
+    // check if the cursor is inside the window and get its position
+    // then, ask bevy to convert into world coordinates, and truncate to discard Z
+    if let Some(world_position) = window
+        .cursor_position()
+        .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+        .map(|ray| ray.origin.truncate())
+    {
+        coords.0 = world_position;
+        eprintln!("World coords: {}/{}", world_position.x, world_position.y);
     }
 }

@@ -4,15 +4,21 @@ use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::prelude::{RigidBodyBuilder, RigidBodySet};
 
 pub mod components;
+pub mod resources;
 pub mod systems;
 
+use crate::world::resources::WorldCoordinates;
 use systems::*;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_walls);
+        app.insert_resource(WorldCoordinates {
+            0: Default::default(),
+        })
+        .add_systems(Startup, (spawn_camera, spawn_walls))
+        .add_systems(Update, handle_mapping_cursor_to_world);
     }
 }
 

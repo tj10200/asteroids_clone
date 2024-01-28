@@ -3,11 +3,14 @@ use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use bevy_rapier2d::rapier::dynamics::RigidBodyType;
 use bevy_rapier2d::rapier::prelude::RigidBodyBuilder;
+use std::f32::consts::PI;
 
 use crate::shots::components::*;
 use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::util::angle_between;
 use crate::world;
 use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
+use crate::world::resources::WorldCoordinates;
 use crate::world::systems as world_systems;
 
 use super::components::*;
@@ -99,6 +102,17 @@ pub fn update_player_position(
         {
             velocity.angvel = 0.0;
         }
+    }
+}
+
+pub fn update_player_position_from_coordinates(
+    coordinates: ResMut<WorldCoordinates>,
+    mut player_ship_query: Query<(&mut Transform, &mut Velocity), With<PlayerShip>>,
+) {
+    if let Ok((mut transform, mut velocity)) = player_ship_query.get_single_mut() {
+        let direction = coordinates.0 - Vec2::new(transform.translation.x, transform.translation.y);
+        let angle = direction.y.atan2(direction.x);
+        transform.rotation = Quat::from_rotation_z(angle - PI / 2.);
     }
 }
 

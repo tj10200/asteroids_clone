@@ -15,6 +15,7 @@ impl Plugin for PlayerShipPlugin {
             Update,
             (
                 update_player_position,
+                update_player_position_from_coordinates,
                 handle_player_intersections_with_wall,
             ),
         );
