@@ -1,6 +1,4 @@
-use crate::planets::MAIN_PLANET_DENSITY;
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
 
 pub const GRAVITATIONAL_CONSTANT: f32 = 0.2;
 #[derive(Component)]

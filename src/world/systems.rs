@@ -1,11 +1,9 @@
-use crate::shots::components::WeaponFireTimer;
 use ::bevy::prelude::*;
 use bevy::ecs::system::Insert;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 use rand::{random, thread_rng};
-use std::ops::Deref;
 
 use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
 use crate::world::RigidBodyBehaviors;

@@ -2,8 +2,6 @@ extern crate serde;
 
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::{Collider, Vect};
-use image;
-use image::Pixel;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json;
 use serde_xml_rs;
@@ -108,7 +106,7 @@ impl XMLSpriteSheetLoader {
         match fs::read_to_string(sprite_collision_file) {
             Ok(json_string) => {
                 let sprites: Vec<SpriteShapes> = serde_json::from_str(&json_string).unwrap();
-                let mut map: HashMap<String, SpriteShapes> = HashMap::from(
+                let map: HashMap<String, SpriteShapes> = HashMap::from(
                     sprites
                         .into_iter()
                         .map(|s| (s.name.clone(), s.clone()))

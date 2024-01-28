@@ -31,7 +31,6 @@ pub fn spawn_planets(mut commands: Commands, window_query: Query<&Window, With<P
 
 pub fn render_planets(mut gizmos: Gizmos, planet_query: Query<&Planet>) {
     for planet in planet_query.iter() {
-        let planet = planet.clone();
         gizmos.circle_2d(planet.coordinates, planet.radius, planet.color);
     }
 }
@@ -39,10 +38,10 @@ pub fn render_planets(mut gizmos: Gizmos, planet_query: Query<&Planet>) {
 pub fn simulate_meteor_gravity_toward_planets(
     mut commands: Commands,
     planet_query: Query<&Planet>,
-    mut meteor_query: Query<(Entity, &Transform, &mut Velocity, &Meteor)>,
+    mut meteor_query: Query<(Entity, &Transform, &Meteor)>,
 ) {
     for planet in planet_query.iter() {
-        for (entity, transform, mut velocity, meteor) in meteor_query.iter_mut() {
+        for (entity, transform, meteor) in meteor_query.iter_mut() {
             commands.entity(entity).try_insert(ExternalImpulse {
                 impulse: gravitational_velocity(
                     Vec2::from((transform.translation.x, transform.translation.y)),
@@ -58,16 +57,10 @@ pub fn simulate_meteor_gravity_toward_planets(
 pub fn simulate_player_gravity_toward_planets(
     mut commands: Commands,
     planet_query: Query<&Planet>,
-    mut player_query: Query<(
-        Entity,
-        &Transform,
-        &Velocity,
-        &mut ExternalForce,
-        &PlayerShip,
-    )>,
+    mut player_query: Query<(Entity, &Transform, &PlayerShip)>,
 ) {
     for planet in planet_query.iter() {
-        for (entity, transform, velocity, mut force, player_ship) in player_query.iter_mut() {
+        for (entity, transform, player_ship) in player_query.iter_mut() {
             commands.entity(entity).try_insert(ExternalImpulse {
                 impulse: gravitational_velocity(
                     Vec2::from((transform.translation.x, transform.translation.y)),

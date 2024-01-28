@@ -76,41 +76,6 @@ fn spawn_weapon_at_position(
         middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)),
         Some((WeaponFireTimer { ..default() }, Sensor)),
     );
-    // let texture_handle = asset_server.load(&sprite_loader.file);
-    // let sprite = sprite_loader.get_sprite(sprite_name).unwrap();
-    // let collider = sprite_loader
-    //     .get_sprite_collider(sprite_name, 0, true)
-    //     .unwrap();
-    // let ship_offset = (sprite.x, sprite.y);
-    // let texture_atlas = TextureAtlas::from_grid(
-    //     texture_handle,
-    //     Vec2::new(sprite.width, sprite.height),
-    //     1,
-    //     1,
-    //     None,
-    //     Some(Vec2::new(ship_offset.0, ship_offset.1)),
-    // );
-    // let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    // let scale = 1.0;
-    // commands
-    //     .spawn((
-    //         SpriteSheetBundle {
-    //             texture_atlas: texture_atlas_handle,
-    //             sprite: TextureAtlasSprite::new(0),
-    //             ..default()
-    //         },
-    //         weapon,
-    //     ))
-    //     .insert(RigidBody::Dynamic)
-    //     .insert(GravityScale(0.0))
-    //     .insert(Sleeping::disabled())
-    //     .insert(Ccd::enabled())
-    //     .insert(collider.clone())
-    //     .insert(ColliderMassProperties::Density(0.001))
-    //     .insert(Sensor)
-    //     .insert(middle_shot_from_transform(ship_transform).with_scale(Vec3::splat(scale)))
-    //     .insert(ActiveEvents::COLLISION_EVENTS)
-    //     .insert(force);
 }
 
 fn middle_shot_from_transform(transform: &Transform) -> Transform {

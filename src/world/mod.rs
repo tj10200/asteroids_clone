@@ -1,7 +1,5 @@
-use bevy::ecs::system::Insert;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
-use bevy_rapier2d::rapier::prelude::{RigidBodyBuilder, RigidBodySet};
 
 pub mod components;
 pub mod resources;
@@ -29,8 +27,6 @@ pub struct RigidBodyBehaviors {
     can_sleep: bool,
     ccd_enabled: bool,
     active_events: ActiveEvents,
-    translation: Vec2,
-    rotation: f32,
     velocity: Option<Velocity>,
     external_force: Option<ExternalForce>,
 }
@@ -44,8 +40,6 @@ impl RigidBodyBehaviors {
             can_sleep: false,
             ccd_enabled: true,
             active_events: ActiveEvents::COLLISION_EVENTS,
-            translation: Vec2::default(),
-            rotation: 0.0,
             velocity: None,
             external_force: None,
         }
@@ -83,23 +77,6 @@ impl RigidBodyBehaviors {
             })
             .insert(self.active_events)
             .insert(self.mass);
-
-        // commands.entity(entity).insert((
-        //     self.body_type,
-        //     GravityScale(self.gravity),
-        //     if self.can_sleep {
-        //         Sleeping::default()
-        //     } else {
-        //         Sleeping::disabled()
-        //     },
-        //     if self.ccd_enabled {
-        //         Ccd::enabled()
-        //     } else {
-        //         Ccd::disabled()
-        //     },
-        //     self.active_events,
-        //     self.mass,
-        // ));
 
         if let Some(velocity) = self.velocity {
             commands.entity(entity).insert(velocity);

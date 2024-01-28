@@ -3,16 +3,14 @@ use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
 use crate::world;
 use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
 use crate::world::systems as world_systems;
-use bevy::a11y::accesskit::Role::Meter;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 
 use super::*;
-use crate::meteors::components::*;
 use crate::shots::components::Weapon;
-use rand::{random, Rng};
+use rand::Rng;
 
 pub fn spawn_meteors(
     mut commands: Commands,
@@ -23,7 +21,7 @@ pub fn spawn_meteors(
 ) {
     let window = window_query.get_single().unwrap();
 
-    for i in 0..=NUMBER_OF_METEORS {
+    for _ in 0..=NUMBER_OF_METEORS {
         let meteor = Meteor::default();
 
         spawn_meteor_at_random_location(
@@ -96,14 +94,6 @@ fn spawn_meteor_at_position(
     );
 }
 
-// scale can be relative speed or distance from origin
-fn rotation_relative_vector(origin: Vec2, rotation_radians: f32, scale: f32) -> Vec2 {
-    let dx = rotation_radians.cos() * scale;
-    let dy = rotation_radians.sin() * scale;
-
-    Vec2::new(dx, dy)
-}
-
 fn explode_meteor(
     origin: Vec2,
     num_fragments: usize,
@@ -159,7 +149,6 @@ fn create_new_meteors_after_destruction(
 
 pub fn despawn_meteor(
     mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     sprite_loader: Res<XMLSpriteSheetLoader>,

@@ -1,5 +1,4 @@
 use crate::shots::components::Weapon;
-use bevy::prelude::KeyCode::M;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 use rand::distributions::{Uniform, WeightedIndex};
@@ -127,7 +126,7 @@ impl Meteor {
         let mut vec = Vec::new();
         let mut rng = thread_rng();
         let range = Uniform::from(0.01f32..1f32);
-        for i in 0..=NUM_METEORS_TO_SPAWN_ON_DESTRUCTION {
+        for _ in 0..=NUM_METEORS_TO_SPAWN_ON_DESTRUCTION {
             let chance = range.sample(&mut rng);
             if chance >= CHANCE_TO_SPAWN_METEOR_ON_DESTRUCTION {
                 vec.push(Meteor::new(self.meteor_type.next_size()))

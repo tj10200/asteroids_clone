@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
 
 mod meteors;
