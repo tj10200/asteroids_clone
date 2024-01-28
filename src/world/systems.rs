@@ -3,6 +3,8 @@ use ::bevy::prelude::*;
 use bevy::ecs::system::Insert;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
+use rand::distributions::{Distribution, Uniform};
+use rand::{random, thread_rng};
 use std::ops::Deref;
 
 use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
@@ -160,4 +162,14 @@ pub fn handle_mapping_cursor_to_world(
         coords.0 = world_position;
         // eprintln!("World coords: {}/{}", world_position.x, world_position.y);
     }
+}
+
+pub fn random_val_outside_contraints(window_size: f32, left_bound: f32, right_bound: f32) -> f32 {
+    let uniform = if random() {
+        Uniform::from(0.01..left_bound)
+    } else {
+        Uniform::from(right_bound..0.99)
+    };
+    let mut rng = thread_rng();
+    uniform.sample(&mut rng) * window_size
 }

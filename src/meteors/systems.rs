@@ -45,8 +45,17 @@ fn spawn_meteor_at_random_location(
     window: &Window,
     meteor: Meteor,
 ) {
-    let random_x = random::<f32>() * window.width();
-    let random_y = random::<f32>() * window.height();
+    let (width, height) = (window.width(), window.height());
+    let random_x = world_systems::random_val_outside_contraints(
+        width,
+        METEOR_SPAWN_RANGE_REL_TO_WINDOW.0,
+        METEOR_SPAWN_RANGE_REL_TO_WINDOW.1,
+    );
+    let random_y = world_systems::random_val_outside_contraints(
+        height,
+        METEOR_SPAWN_RANGE_REL_TO_WINDOW.0,
+        METEOR_SPAWN_RANGE_REL_TO_WINDOW.1,
+    );
     spawn_meteor_at_position(
         commands,
         asset_server,
