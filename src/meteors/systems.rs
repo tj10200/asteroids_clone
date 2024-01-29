@@ -9,6 +9,7 @@ use bevy_rapier2d::prelude::*;
 use std::f32::consts::PI;
 
 use super::*;
+use crate::damage::Damageable;
 use crate::shots::components::Weapon;
 use rand::Rng;
 
@@ -155,7 +156,7 @@ pub fn despawn_meteor(
     mut meteor_query: Query<(Entity, &Meteor, &Transform)>,
 ) {
     for (entity, meteor, transform) in meteor_query.iter_mut() {
-        if meteor.destroyed() {
+        if meteor.is_dead() {
             _despawn(&mut commands, entity);
 
             for new_meteors in

@@ -1,3 +1,4 @@
+use crate::damage::Damage;
 use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use std::time::Duration;
@@ -35,6 +36,12 @@ impl Default for Weapon {
             frame_rows: 1,
             start_frame: 0,
         }
+    }
+}
+
+impl Damage for Weapon {
+    fn hit_points(&self) -> f32 {
+        self.damage
     }
 }
 

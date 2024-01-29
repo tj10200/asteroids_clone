@@ -1,3 +1,6 @@
+use crate::damage::Damageable;
+use crate::meteors::components::Meteor;
+use crate::planets::components::Planet;
 use ::bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_rapier2d::prelude::*;
@@ -17,6 +20,8 @@ pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
 pub const PLAYER_ACCELERATION: f32 = 35.0;
 pub const PLAYER_SHIP_DENSITY: f32 = 1.;
 pub const PLAYER_SHIP_SCALE: f32 = 0.4;
+
+pub const PLAYER_HEALTH: f32 = 2000.;
 
 pub fn spawn_ship(
     mut commands: Commands,
@@ -38,6 +43,7 @@ pub fn spawn_ship(
         PLAYER_SHIP_SCALE,
         PlayerShip {
             density: PLAYER_SHIP_DENSITY,
+            health: PLAYER_HEALTH,
         },
         world::RigidBodyBehaviors::default()
             .with_velocity(Velocity::zero())
@@ -185,6 +191,7 @@ pub fn handle_player_intersections_with_wall(
                 PLAYER_SHIP_SCALE,
                 PlayerShip {
                     density: PLAYER_SHIP_DENSITY,
+                    health: PLAYER_HEALTH,
                 },
                 world::RigidBodyBehaviors::default()
                     .with_velocity(velocity.clone())
@@ -193,6 +200,52 @@ pub fn handle_player_intersections_with_wall(
                 transform,
                 Some(WeaponFireTimer { ..default() }),
             );
+        }
+    }
+}
+
+pub fn handle_player_collision(
+    mut commands: Commands,
+    mut collision_events: EventReader<CollisionEvent>,
+    mut player_ship_query: Query<&mut PlayerShip>,
+    meteor_query: Query<&Meteor>,
+    planet_query: Query<&Planet>,
+) {
+    for collision_event in collision_events.read() {
+        if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
+            let (player_entity, mut player_ship, other_entity) =
+                if player_ship_query.get(*entity1).is_ok() {
+                    (
+                        *entity1,
+                        player_ship_query.get_mut(*entity1).unwrap(),
+                        *entity2,
+                    )
+                } else if player_ship_query.get(*entity2).is_ok() {
+                    (
+                        *entity2,
+                        player_ship_query.get_mut(*entity2).unwrap(),
+                        *entity1,
+                    )
+                } else {
+                    continue;
+                };
+
+            if let Ok(meteor) = meteor_query.get(other_entity) {
+                player_ship.damage(meteor);
+                if player_ship.is_dead() {
+                    commands.entity(player_entity).despawn();
+                    return;
+                }
+            }
+            if let Ok(planet) = planet_query.get(other_entity) {
+                player_ship.damage(planet);
+                if player_ship.is_dead() {
+                    commands.entity(player_entity).despawn();
+                    return;
+                }
+            }
+            // Handle the bullet impact, e.g., apply damage, play sound, etc.
+            // Remove the bullet from the game
         }
     }
 }

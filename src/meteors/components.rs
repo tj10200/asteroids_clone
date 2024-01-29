@@ -1,3 +1,4 @@
+use crate::damage::{Damage, Damageable};
 use crate::shots::components::Weapon;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
@@ -47,11 +48,19 @@ impl MeteorType {
         }
     }
 
-    pub fn max_damage(&self) -> f32 {
+    pub fn health(&self) -> f32 {
         match self {
             MeteorType::Big => 200f32,
             MeteorType::Med => 100f32,
             MeteorType::Small => 50f32,
+        }
+    }
+
+    pub fn damage(&self) -> f32 {
+        match self {
+            MeteorType::Big => 2500f32,
+            MeteorType::Med => 1500f32,
+            MeteorType::Small => 500f32,
         }
     }
 
@@ -82,7 +91,8 @@ pub struct Meteor {
     pub frame_cols: usize,
     pub frame_rows: usize,
     pub start_frame: usize,
-    pub damage: f32,
+    pub health: f32,
+    damage: f32,
 }
 
 impl Default for Meteor {
@@ -97,6 +107,8 @@ impl Meteor {
         let speed_x = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let speed_y = rng.gen_range(METEOR_SPEED_RANGE.0..=METEOR_SPEED_RANGE.1);
         let rotation = rng.gen_range(METEOR_ROTATION_RANGE.0..=METEOR_ROTATION_RANGE.1);
+        let health = meteor_type.health();
+        let damage = meteor_type.damage();
         Meteor {
             meteor_type,
             sprite_name: random_meteor_sprite_name(meteor_type),
@@ -106,15 +118,9 @@ impl Meteor {
             frame_cols: 1,
             frame_rows: 1,
             start_frame: 0,
-            damage: 0f32,
+            health,
+            damage,
         }
-    }
-    pub fn damage(&mut self, weapon: &Weapon) {
-        self.damage += weapon.damage
-    }
-
-    pub fn destroyed(&self) -> bool {
-        self.damage >= self.meteor_type.max_damage()
     }
 
     pub fn spawn_next_size(&self) -> Vec<Meteor> {
@@ -133,5 +139,21 @@ impl Meteor {
             }
         }
         vec
+    }
+}
+
+impl Damageable for Meteor {
+    fn damage(&mut self, entity: &impl Damage) {
+        self.health -= entity.hit_points();
+    }
+
+    fn health(&self) -> f32 {
+        self.health
+    }
+}
+
+impl Damage for Meteor {
+    fn hit_points(&self) -> f32 {
+        self.damage
     }
 }
