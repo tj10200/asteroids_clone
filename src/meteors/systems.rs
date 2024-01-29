@@ -36,6 +36,27 @@ pub fn spawn_meteors(
     }
 }
 
+pub fn spawn_meteors_over_time(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    sprite_loader: Res<XMLSpriteSheetLoader>,
+    meteor_spawn_timer: Res<MeteorSpawnTimer>,
+) {
+    if meteor_spawn_timer.timer.finished() {
+        let window = window_query.get_single().unwrap();
+        spawn_meteor_at_random_location(
+            &mut commands,
+            &asset_server,
+            &mut texture_atlases,
+            &sprite_loader,
+            &window,
+            Meteor::default(),
+        )
+    }
+}
+
 fn spawn_meteor_at_random_location(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
@@ -303,4 +324,8 @@ pub fn constrain_meteor_velocity(mut meteor_query: Query<&mut Velocity, With<Met
             y => y,
         };
     }
+}
+
+pub fn tick_meteor_spawn_timer(mut timer: ResMut<MeteorSpawnTimer>, time: Res<Time>) {
+    timer.timer.tick(time.delta());
 }
