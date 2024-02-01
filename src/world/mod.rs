@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 
 pub mod components;
 pub mod resources;
@@ -23,11 +23,8 @@ impl Plugin for WorldPlugin {
 pub struct RigidBodyBehaviors {
     body_type: RigidBody,
     gravity: f32,
-    mass: ColliderMassProperties,
-    can_sleep: bool,
-    ccd_enabled: bool,
-    active_events: ActiveEvents,
-    velocity: Option<Velocity>,
+    mass: ColliderDensity,
+    velocity: Option<LinearVelocity>,
     external_force: Option<ExternalForce>,
 }
 
@@ -36,16 +33,13 @@ impl RigidBodyBehaviors {
         RigidBodyBehaviors {
             body_type: RigidBody::Dynamic,
             gravity: 0.0,
-            mass: ColliderMassProperties::Density(1.0),
-            can_sleep: false,
-            ccd_enabled: true,
-            active_events: ActiveEvents::COLLISION_EVENTS,
+            mass: ColliderDensity(1.0),
             velocity: None,
             external_force: None,
         }
     }
 
-    pub fn with_velocity(&mut self, v: Velocity) -> &mut Self {
+    pub fn with_velocity(&mut self, v: LinearVelocity) -> &mut Self {
         self.velocity = Some(v);
         self
     }
@@ -56,7 +50,7 @@ impl RigidBodyBehaviors {
     }
 
     pub fn with_density(&mut self, d: f32) -> &mut Self {
-        self.mass = ColliderMassProperties::Density(d);
+        self.mass = ColliderDensity(d);
         self
     }
 
@@ -65,17 +59,6 @@ impl RigidBodyBehaviors {
             .entity(entity)
             .insert(self.body_type)
             .insert(GravityScale(self.gravity))
-            .insert(if self.can_sleep {
-                Sleeping::disabled()
-            } else {
-                Sleeping::disabled()
-            })
-            .insert(if self.ccd_enabled {
-                Ccd::enabled()
-            } else {
-                Ccd::disabled()
-            })
-            .insert(self.active_events)
             .insert(self.mass);
 
         if let Some(velocity) = self.velocity {

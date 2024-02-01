@@ -1,7 +1,6 @@
 use crate::damage::{Damage, Damageable};
-use crate::shots::components::Weapon;
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::Velocity;
+use bevy_xpbd_2d::prelude::*;
 use rand::distributions::{Uniform, WeightedIndex};
 use rand::prelude::Distribution;
 use rand::{thread_rng, Rng};
@@ -85,7 +84,7 @@ impl MeteorType {
 pub struct Meteor {
     meteor_type: MeteorType,
     pub sprite_name: String,
-    pub velocity: Velocity,
+    pub velocity: LinearVelocity,
     pub density: f32,
     pub rotation: f32,
     pub frame_cols: usize,
@@ -112,7 +111,7 @@ impl Meteor {
         Meteor {
             meteor_type,
             sprite_name: random_meteor_sprite_name(meteor_type),
-            velocity: Velocity::linear(Vec2::new(speed_x, speed_y)),
+            velocity: LinearVelocity(Vec2::new(speed_x, speed_y)),
             density: MeteorType::density(meteor_type),
             rotation,
             frame_cols: 1,

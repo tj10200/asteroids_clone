@@ -1,7 +1,8 @@
 extern crate serde;
 
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::{Collider, Vect};
+use bevy_xpbd_2d::math::Vector;
+use bevy_xpbd_2d::prelude::*;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json;
 use serde_xml_rs;
@@ -140,8 +141,8 @@ impl XMLSpriteSheetLoader {
 
 #[derive(Deserialize, Serialize, Clone)]
 enum ColliderType {
-    Triangle(Vect, Vect, Vect),
-    Polyline(Vec<Vect>),
+    Triangle(Vector, Vector, Vector),
+    Polyline(Vec<Vector>),
 }
 
 #[derive(Serialize, Clone)]
@@ -166,8 +167,8 @@ impl<'de> Deserialize<'de> for Shape {
         let points = helper
             .points
             .into_iter()
-            .map(|p| Vect::new(p[0] as f32, p[1] as f32))
-            .collect::<Vec<Vect>>();
+            .map(|p| Vector::new(p[0] as f32, p[1] as f32))
+            .collect::<Vec<Vector>>();
         let shape_type = match helper.shape.as_ref() {
             "triangle" => ColliderType::Triangle(points[0], points[1], points[2]),
             _ => ColliderType::Polyline(points),
@@ -180,7 +181,7 @@ impl<'de> Deserialize<'de> for Shape {
 }
 
 impl Shape {
-    pub fn get_points(&self, sprite: &Sprite, to_origin: bool) -> Vec<Vect> {
+    pub fn get_points(&self, sprite: &Sprite, to_origin: bool) -> Vec<Vector> {
         if !to_origin {
             return self.get_collider_type_points();
         }
@@ -195,7 +196,7 @@ impl Shape {
             .collect()
     }
 
-    fn get_collider_type_points(&self) -> Vec<Vect> {
+    fn get_collider_type_points(&self) -> Vec<Vector> {
         match self.shape.clone() {
             ColliderType::Triangle(a, b, c) => vec![a, b, c],
             ColliderType::Polyline(v) => v,
@@ -256,13 +257,13 @@ impl SpriteShapes {
                         ))
                     }
                     ColliderType::Polyline(_) => {
-                        if let Some(convex_shape) =
-                            Collider::convex_polyline(shape.get_points(sprite, to_origin))
-                        {
-                            // Assuming each shape is placed at the origin (0.0, 0.0) of the compound collider.
-                            // You can adjust the position of each shape within the compound collider as needed.
-                            compound_shapes.push((Vec2::new(0.0, 0.0), 0.0, convex_shape));
-                        }
+                        // Assuming each shape is placed at the origin (0.0, 0.0) of the compound collider.
+                        // You can adjust the position of each shape within the compound collider as needed.
+                        compound_shapes.push((
+                            Vec2::new(0.0, 0.0),
+                            0.0,
+                            Collider::polyline(shape.get_points(sprite, to_origin), None),
+                        ))
                     }
                 }
             }
@@ -377,10 +378,10 @@ mod tests {
                             shapes: vec![Shape {
                                 name: "shape".to_string(),
                                 shape: ColliderType::Polyline(vec![
-                                    Vect::new(0., 0.),
-                                    Vect::new(1., 0.),
-                                    Vect::new(0., 1.),
-                                    Vect::new(1., 1.),
+                                    Vector::new(0., 0.),
+                                    Vector::new(1., 0.),
+                                    Vector::new(0., 1.),
+                                    Vector::new(1., 1.),
                                 ]),
                             }],
                         },

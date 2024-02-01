@@ -1,7 +1,7 @@
 use ::bevy::prelude::*;
 use bevy::ecs::system::Insert;
 use bevy::window::PrimaryWindow;
-use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 use rand::{random, thread_rng};
 
@@ -36,10 +36,9 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
             },
             BottomWall {},
         ))
-        .insert(RigidBody::Fixed)
+        .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(half_window.0, 0.5))
-        .insert(ActiveEvents::COLLISION_EVENTS);
+        .insert(Collider::cuboid(half_window.0, 0.5));
 
     // Left Wall
     commands
@@ -50,10 +49,9 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
             },
             LeftWall {},
         ))
-        .insert(RigidBody::Fixed)
+        .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(0.5, half_window.1))
-        .insert(ActiveEvents::COLLISION_EVENTS);
+        .insert(Collider::cuboid(0.5, half_window.1));
 
     // Top Wall
     commands
@@ -64,10 +62,9 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
             },
             TopWall {},
         ))
-        .insert(RigidBody::Fixed)
+        .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(half_window.0, 0.5))
-        .insert(ActiveEvents::COLLISION_EVENTS);
+        .insert(Collider::cuboid(half_window.0, 0.5));
 
     // Right Wall
     commands
@@ -78,10 +75,9 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
             },
             RightWall {},
         ))
-        .insert(RigidBody::Fixed)
+        .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(0.5, half_window.1))
-        .insert(ActiveEvents::COLLISION_EVENTS);
+        .insert(Collider::cuboid(0.5, half_window.1));
 }
 
 pub fn spawn_sprite_frame_at_position<T: Component, B: Bundle>(

@@ -1,3 +1,5 @@
+pub mod lib;
+
 pub trait Damage {
     fn hit_points(&self) -> f32;
 }

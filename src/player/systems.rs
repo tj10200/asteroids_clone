@@ -3,9 +3,10 @@ use crate::meteors::components::Meteor;
 use crate::planets::components::Planet;
 use ::bevy::prelude::*;
 use bevy::window::PrimaryWindow;
-use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 use std::f32::consts::PI;
 
+use crate::damage::lib as damage_lib;
 use crate::shots::components::*;
 use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
 use crate::world;
@@ -18,7 +19,7 @@ use super::components::*;
 pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
 pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
 pub const PLAYER_ACCELERATION: f32 = 35.0;
-pub const PLAYER_SHIP_DENSITY: f32 = 1.;
+pub const PLAYER_SHIP_DENSITY: f32 = 0.01;
 pub const PLAYER_SHIP_SCALE: f32 = 0.4;
 
 pub const PLAYER_HEALTH: f32 = 2000.;
@@ -46,7 +47,7 @@ pub fn spawn_ship(
             health: PLAYER_HEALTH,
         },
         world::RigidBodyBehaviors::default()
-            .with_velocity(Velocity::zero())
+            .with_velocity(LinearVelocity::ZERO)
             .with_external_force(ExternalForce::default())
             .with_density(PLAYER_SHIP_DENSITY),
         Transform::from_xyz(window.width() / 3., window.height() / 3., 0.0),
@@ -66,44 +67,28 @@ fn _despawn(commands: &mut Commands, entity: Entity) {
 
 pub fn update_player_position(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_ship_query: Query<(&Transform, &mut Velocity, &mut ExternalForce), With<PlayerShip>>,
+    mut player_ship_query: Query<
+        (&Transform, &mut LinearVelocity, &mut ExternalForce),
+        With<PlayerShip>,
+    >,
 ) {
     if let Ok((transform, mut velocity, mut forces)) = player_ship_query.get_single_mut() {
         if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
-            let rotation = transform.rotation.to_scaled_axis();
-            let linvel = Vec2::from_angle(rotation.z).rotate(Vec2::Y) * PLAYER_ACCELERATION;
-            forces.force = linvel;
+            let force = transform.rotation.mul_vec3(Vec3::Y) * PLAYER_ACCELERATION;
+            forces.apply_force(Vec2::new(force.x, force.y));
         }
 
         if keyboard_input.just_released(KeyCode::Up) || keyboard_input.just_released(KeyCode::W) {
-            forces.force = Vec2::ZERO;
+            forces.clear();
         }
 
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            let rotation = transform.rotation.to_scaled_axis();
-            let linvel = Vec2::from_angle(rotation.z).rotate(Vec2::Y) * -PLAYER_ACCELERATION;
-            forces.force = linvel;
+            let force = transform.rotation.mul_vec3(Vec3::Y) * -PLAYER_ACCELERATION;
+            forces.apply_force(Vec2::new(force.x, force.y));
         }
 
         if keyboard_input.just_released(KeyCode::Down) || keyboard_input.just_released(KeyCode::S) {
-            forces.force = Vec2::ZERO;
-        }
-
-        if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
-            velocity.angvel = PLAYER_ROTATION_SPEED;
-        }
-
-        if keyboard_input.just_released(KeyCode::Left) || keyboard_input.just_released(KeyCode::A) {
-            velocity.angvel = 0.0;
-        }
-
-        if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
-            velocity.angvel = -PLAYER_ROTATION_SPEED;
-        }
-
-        if keyboard_input.just_released(KeyCode::Right) || keyboard_input.just_released(KeyCode::D)
-        {
-            velocity.angvel = 0.0;
+            forces.clear();
         }
     }
 }
@@ -125,50 +110,43 @@ pub fn handle_player_intersections_with_wall(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     sprite_loader: Res<XMLSpriteSheetLoader>,
-    rapier_context: Res<RapierContext>,
-    player_ship_query: Query<(Entity, &Transform, &Velocity, &ExternalForce), With<PlayerShip>>,
-    left_wall_query: Query<Entity, With<LeftWall>>,
-    right_wall_query: Query<Entity, With<RightWall>>,
-    top_wall_query: Query<Entity, With<TopWall>>,
-    bottom_wall_query: Query<Entity, With<BottomWall>>,
+    player_ship_query: Query<
+        (Entity, &Transform, &LinearVelocity, &CollidingEntities),
+        With<PlayerShip>,
+    >,
+    left_wall_query: Query<&LeftWall>,
+    right_wall_query: Query<&RightWall>,
+    top_wall_query: Query<&TopWall>,
+    bottom_wall_query: Query<&BottomWall>,
 ) {
     let window = window_query.get_single().unwrap();
-    if let Ok((player_ship_entity, player_ship_transform, velocity, external_force)) =
+    if let Ok((player_ship_entity, player_ship_transform, velocity, colliding_entities)) =
         player_ship_query.get_single()
     {
         let mut should_spawn_ship = false;
         let mut transform = player_ship_transform.clone();
         let sprite = sprite_loader.get_sprite(PLAYER_SHIP).unwrap();
         let radius = sprite.half_width();
-        if let Ok(wall_entity) = left_wall_query.get_single() {
-            if rapier_context.intersection_pair(player_ship_entity, wall_entity) == Some(true) {
+        for other_entity in colliding_entities.iter() {
+            if let Ok(_) = left_wall_query.get(*other_entity) {
                 let distance = player_ship_transform.translation.x;
                 if distance < radius && player_ship_transform.translation.x < 0.0 {
                     should_spawn_ship = true;
                     transform.translation.x = window.width() - radius;
                 }
-            }
-        }
-        if let Ok(wall_entity) = right_wall_query.get_single() {
-            if rapier_context.intersection_pair(player_ship_entity, wall_entity) == Some(true) {
+            } else if let Ok(_) = right_wall_query.get(*other_entity) {
                 let distance = window.width() - player_ship_transform.translation.x;
                 if distance < radius && player_ship_transform.translation.x > window.width() {
                     should_spawn_ship = true;
                     transform.translation.x = radius;
                 }
-            }
-        }
-        if let Ok(wall_entity) = top_wall_query.get_single() {
-            if rapier_context.intersection_pair(player_ship_entity, wall_entity) == Some(true) {
+            } else if let Ok(_) = top_wall_query.get(*other_entity) {
                 let distance = window.height() - player_ship_transform.translation.y;
                 if distance < radius && player_ship_transform.translation.y > window.height() {
                     should_spawn_ship = true;
                     transform.translation.y = radius;
                 }
-            }
-        }
-        if let Ok(wall_entity) = bottom_wall_query.get_single() {
-            if rapier_context.intersection_pair(player_ship_entity, wall_entity) == Some(true) {
+            } else if let Ok(_) = bottom_wall_query.get(*other_entity) {
                 let distance = player_ship_transform.translation.y;
                 if distance < radius && player_ship_transform.translation.y < 0.0 {
                     should_spawn_ship = true;
@@ -195,57 +173,34 @@ pub fn handle_player_intersections_with_wall(
                 },
                 world::RigidBodyBehaviors::default()
                     .with_velocity(velocity.clone())
-                    .with_external_force(external_force.clone())
                     .with_density(PLAYER_SHIP_DENSITY),
                 transform,
                 Some(WeaponFireTimer { ..default() }),
             );
+            return;
         }
     }
 }
 
-pub fn handle_player_collision(
+pub fn handle_player_collision_with_meteor(
     mut commands: Commands,
-    mut collision_events: EventReader<CollisionEvent>,
-    mut player_ship_query: Query<&mut PlayerShip>,
+    mut player_ship_query: Query<(Entity, &mut PlayerShip, &CollidingEntities)>,
     meteor_query: Query<&Meteor>,
+) {
+    damage_lib::handle_collision_with_damageable(
+        &mut commands,
+        &meteor_query,
+        &mut player_ship_query,
+    );
+}
+pub fn handle_player_collision_with_planet(
+    mut commands: Commands,
+    mut player_ship_query: Query<(Entity, &mut PlayerShip, &CollidingEntities)>,
     planet_query: Query<&Planet>,
 ) {
-    for collision_event in collision_events.read() {
-        if let CollisionEvent::Started(entity1, entity2, _) = collision_event {
-            let (player_entity, mut player_ship, other_entity) =
-                if player_ship_query.get(*entity1).is_ok() {
-                    (
-                        *entity1,
-                        player_ship_query.get_mut(*entity1).unwrap(),
-                        *entity2,
-                    )
-                } else if player_ship_query.get(*entity2).is_ok() {
-                    (
-                        *entity2,
-                        player_ship_query.get_mut(*entity2).unwrap(),
-                        *entity1,
-                    )
-                } else {
-                    continue;
-                };
-
-            if let Ok(meteor) = meteor_query.get(other_entity) {
-                player_ship.damage(meteor);
-                if player_ship.is_dead() {
-                    commands.entity(player_entity).despawn();
-                    return;
-                }
-            }
-            if let Ok(planet) = planet_query.get(other_entity) {
-                player_ship.damage(planet);
-                if player_ship.is_dead() {
-                    commands.entity(player_entity).despawn();
-                    return;
-                }
-            }
-            // Handle the bullet impact, e.g., apply damage, play sound, etc.
-            // Remove the bullet from the game
-        }
-    }
+    damage_lib::handle_collision_with_damageable(
+        &mut commands,
+        &planet_query,
+        &mut player_ship_query,
+    );
 }

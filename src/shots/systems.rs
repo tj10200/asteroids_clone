@@ -5,7 +5,7 @@ use crate::world;
 use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
 use crate::world::systems as world_systems;
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 
 pub fn player_fire_weapon(
     mut commands: Commands,
@@ -38,10 +38,7 @@ pub fn player_fire_weapon(
                     &sprite_name,
                     weapon,
                     transform,
-                    Velocity {
-                        linvel,
-                        angvel: 0.0,
-                    },
+                    LinearVelocity(linvel),
                 );
             }
         }
@@ -55,7 +52,7 @@ fn spawn_weapon_at_position(
     sprite_name: &str,
     weapon: Weapon,
     ship_transform: &Transform,
-    force: Velocity,
+    force: LinearVelocity,
 ) {
     let scale = weapon.scale;
     let density = weapon.density;

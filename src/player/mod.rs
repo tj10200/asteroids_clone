@@ -15,7 +15,8 @@ impl Plugin for PlayerShipPlugin {
                 update_player_position,
                 update_player_position_from_coordinates,
                 handle_player_intersections_with_wall,
-                handle_player_collision,
+                // handle_player_collision_with_meteor,
+                // handle_player_collision_with_planet,
             ),
         );
     }

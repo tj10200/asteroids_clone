@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_xpbd_2d::prelude::*;
 
 pub mod damage;
 mod meteors;
@@ -33,15 +33,7 @@ fn main() {
             .unwrap(),
         )
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(
-            PIXELS_PER_METER,
-        ))
-        .insert_resource(RapierConfiguration {
-            gravity: Vec2::ZERO,
-            scaled_shape_subdivision: 100,
-            ..default()
-        })
-        .add_plugins(RapierDebugRenderPlugin::default())
+        .add_plugins((PhysicsPlugins::default(), PhysicsDebugPlugin::default()))
         .add_plugins(WorldPlugin {})
         .add_plugins(PlayerShipPlugin {})
         .add_plugins(WeaponFirePlugin {})
