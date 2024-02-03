@@ -41,9 +41,9 @@ pub enum MeteorType {
 impl MeteorType {
     pub fn density(meteor_type: MeteorType) -> f32 {
         match meteor_type {
-            MeteorType::Big => 100.,
-            MeteorType::Med => 80.,
-            MeteorType::Small => 50.,
+            MeteorType::Big => 5.0,
+            MeteorType::Med => 2.5,
+            MeteorType::Small => 1.5,
         }
     }
 

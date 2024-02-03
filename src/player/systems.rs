@@ -19,7 +19,7 @@ use super::components::*;
 pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
 pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
 pub const PLAYER_ACCELERATION: f32 = 35.0;
-pub const PLAYER_SHIP_DENSITY: f32 = 0.01;
+pub const PLAYER_SHIP_DENSITY: f32 = 0.9;
 pub const PLAYER_SHIP_SCALE: f32 = 0.4;
 
 pub const PLAYER_HEALTH: f32 = 2000.;

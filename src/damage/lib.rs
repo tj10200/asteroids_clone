@@ -21,3 +21,20 @@ pub fn handle_collision_with_damageable<T: Damage + Component, Q: Damageable + C
         }
     }
 }
+
+pub fn handle_collision_with_damage<T: Damage + Component, Q: Damageable + Component>(
+    commands: &mut Commands,
+    damage_query: &Query<(&T, &CollidingEntities)>,
+    damageable_query: &mut Query<(&mut Q)>,
+) {
+    for (damage, colliding_entities) in damage_query.iter() {
+        for other_entity in colliding_entities.iter() {
+            if let Ok(mut damageable) = damageable_query.get_mut(*other_entity) {
+                damageable.damage(damage);
+                if damageable.is_dead() {
+                    commands.entity(*other_entity).despawn();
+                }
+            }
+        }
+    }
+}

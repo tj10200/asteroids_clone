@@ -38,7 +38,7 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
         ))
         .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(half_window.0, 0.5));
+        .insert(Collider::cuboid(window.width(), 0.5));
 
     // Left Wall
     commands
@@ -51,7 +51,7 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
         ))
         .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(0.5, half_window.1));
+        .insert(Collider::cuboid(0.5, window.height()));
 
     // Top Wall
     commands
@@ -64,7 +64,7 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
         ))
         .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(half_window.0, 0.5));
+        .insert(Collider::cuboid(window.width(), 0.5));
 
     // Right Wall
     commands
@@ -77,7 +77,7 @@ pub fn spawn_walls(mut commands: Commands, window_query: Query<&Window, With<Pri
         ))
         .insert(RigidBody::Static)
         .insert(Sensor)
-        .insert(Collider::cuboid(0.5, half_window.1));
+        .insert(Collider::cuboid(0.5, window.height()));
 }
 
 pub fn spawn_sprite_frame_at_position<T: Component, B: Bundle>(

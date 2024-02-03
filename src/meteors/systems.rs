@@ -286,21 +286,10 @@ pub fn handle_meteor_intersections_with_wall(
 
 pub fn handle_weapon_collision(
     mut commands: Commands,
-    shot_query: Query<&Weapon>,
-    mut meteor_query: Query<(Entity, &mut Meteor, &CollidingEntities)>,
+    shot_query: Query<(&Weapon, &CollidingEntities)>,
+    mut meteor_query: Query<&mut Meteor>,
 ) {
-    damage_lib::handle_collision_with_damageable(&mut commands, &shot_query, &mut meteor_query);
-    // if let Ok((meteor_entity, mut meteor, colliding_entities)) = meteor_query.get_single() {
-    //     for other_entity in colliding_entities.iter() {
-    //         if let Ok(weapon) = shot_query.get(*other_entity) {
-    //             meteor.damage(weapon);
-    //             if meteor.is_dead() {
-    //                 commands.entity(meteor_entity).despawn();
-    //                 return;
-    //             }
-    //         }
-    //     }
-    // }
+    damage_lib::handle_collision_with_damage(&mut commands, &shot_query, &mut meteor_query);
 }
 
 pub fn constrain_meteor_velocity(mut meteor_query: Query<&mut LinearVelocity, With<Meteor>>) {

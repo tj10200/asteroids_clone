@@ -23,7 +23,7 @@ impl Plugin for WorldPlugin {
 pub struct RigidBodyBehaviors {
     body_type: RigidBody,
     gravity: f32,
-    mass: ColliderDensity,
+    mass: Mass,
     velocity: Option<LinearVelocity>,
     external_force: Option<ExternalForce>,
 }
@@ -33,7 +33,7 @@ impl RigidBodyBehaviors {
         RigidBodyBehaviors {
             body_type: RigidBody::Dynamic,
             gravity: 0.0,
-            mass: ColliderDensity(1.0),
+            mass: Mass(1.0),
             velocity: None,
             external_force: None,
         }
@@ -50,7 +50,7 @@ impl RigidBodyBehaviors {
     }
 
     pub fn with_density(&mut self, d: f32) -> &mut Self {
-        self.mass = ColliderDensity(d);
+        self.mass = Mass(d);
         self
     }
 
@@ -59,6 +59,7 @@ impl RigidBodyBehaviors {
             .entity(entity)
             .insert(self.body_type)
             .insert(GravityScale(self.gravity))
+            .insert(ColliderDensity(0.0))
             .insert(self.mass);
 
         if let Some(velocity) = self.velocity {
