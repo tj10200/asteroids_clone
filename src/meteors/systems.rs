@@ -133,27 +133,39 @@ fn explode_meteor(
     max_speed: f32,
 ) -> Vec<(Vec2, Vec2)> {
     let mut rng = rand::thread_rng();
-    let mut fragments = Vec::new();
+    let mut fragments = Vec::with_capacity(num_fragments);
+    let start_positions = equidistant_points_on_circle(origin, explosion_radius, num_fragments);
+    let angle_increment = 2.0 * PI / num_fragments as f32;
 
-    for _ in 0..num_fragments {
-        let angle = rng.gen_range(0.1..2.0 * PI);
-        let distance = 25f32;
+    for i in 0..num_fragments {
         let speed = rng.gen_range(0.5 * max_speed..max_speed);
 
-        // Calculate the starting position of the fragment
-        let start_x = origin.x + distance * angle.cos();
-        let start_y = origin.y + distance * angle.sin();
-        let start_position = Vec2::new(start_x, start_y);
-
         // Calculate the velocity of the fragment
+        let angle = angle_increment * i as f32;
         let velocity_x = speed * angle.cos();
         let velocity_y = speed * angle.sin();
-        let velocity = Vec2::new(velocity_x, velocity_y);
-
-        fragments.push((start_position, velocity));
+        fragments.push((start_positions[i], Vec2::new(velocity_x, velocity_y)));
     }
 
     fragments
+}
+
+fn equidistant_points_on_circle(origin: Vec2, radius: f32, num_points: usize) -> Vec<Vec2> {
+    let angle_increment = 2.0 * PI / num_points as f32;
+
+    let mut points = Vec::with_capacity(num_points);
+    let mut rng = rand::thread_rng();
+
+    for i in 0..num_points {
+        let radius = rng.gen_range(0.75 * radius..=1.5 * radius);
+        let angle = angle_increment * i as f32;
+        points.push(Vec2::new(
+            origin.x + radius * angle.cos(),
+            origin.y + radius * angle.sin(),
+        ));
+    }
+
+    points
 }
 
 fn nudge_onto_screen(
@@ -189,7 +201,7 @@ fn create_new_meteors_after_destruction(
     let fragments = explode_meteor(
         Vec2::new(transform.translation.x, transform.translation.y),
         breakup_meteors.len(),
-        meteor_sprite.width,
+        meteor_sprite.width * transform.scale.x,
         METEOR_SPEED_RANGE.1,
     );
     let fragments = nudge_onto_screen(fragments, max_x, max_y);
