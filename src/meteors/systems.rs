@@ -136,8 +136,8 @@ fn explode_meteor(
     let mut fragments = Vec::new();
 
     for _ in 0..num_fragments {
-        let angle = rng.gen_range(0.0..2.0 * PI);
-        let distance = rng.gen_range(0.0..explosion_radius);
+        let angle = rng.gen_range(0.1..2.0 * PI);
+        let distance = 25f32;
         let speed = rng.gen_range(0.5 * max_speed..max_speed);
 
         // Calculate the starting position of the fragment
@@ -156,23 +156,44 @@ fn explode_meteor(
     fragments
 }
 
+fn nudge_onto_screen(
+    mut fragments: Vec<(Vec2, Vec2)>,
+    max_width: f32,
+    max_height: f32,
+) -> Vec<(Vec2, Vec2)> {
+    for fragment in fragments.iter_mut() {
+        if fragment.0.x < 0. {
+            fragment.0.x = 1.;
+        } else if fragment.0.x >= max_width {
+            fragment.0.x = max_width - 2.;
+        }
+        if fragment.0.y < 0. {
+            fragment.0.y = 1.;
+        } else if fragment.0.y >= max_height {
+            fragment.0.y = max_height - 2.;
+        }
+    }
+    fragments
+}
+
 fn create_new_meteors_after_destruction(
     meteor: &Meteor,
     transform: &Transform,
     sprite_loader: &Res<XMLSpriteSheetLoader>,
+    max_x: f32,
+    max_y: f32,
 ) -> Vec<(Meteor, Vec2)> {
     let meteor_sprite = sprite_loader.get_sprite(&meteor.sprite_name).unwrap();
     let mut breakup_meteors = meteor.spawn_next_size();
     let mut res = vec![];
-    for (i, (position, velocity)) in explode_meteor(
+    let fragments = explode_meteor(
         Vec2::new(transform.translation.x, transform.translation.y),
         breakup_meteors.len(),
         meteor_sprite.width,
         METEOR_SPEED_RANGE.1,
-    )
-    .iter()
-    .enumerate()
-    {
+    );
+    let fragments = nudge_onto_screen(fragments, max_x, max_y);
+    for (i, (position, velocity)) in fragments.iter().enumerate() {
         breakup_meteors[i].velocity = LinearVelocity(*velocity);
         res.push((breakup_meteors[i].to_owned(), *position))
     }
@@ -187,22 +208,7 @@ pub fn despawn_meteor(
     mut meteor_query: Query<(Entity, &Meteor, &Transform)>,
 ) {
     for (entity, meteor, transform) in meteor_query.iter_mut() {
-        if meteor.is_dead() {
-            _despawn(&mut commands, entity);
-
-            for new_meteors in
-                create_new_meteors_after_destruction(meteor, transform, &sprite_loader).iter()
-            {
-                spawn_meteor_at_position(
-                    &mut commands,
-                    &asset_server,
-                    &mut texture_atlases,
-                    &sprite_loader,
-                    new_meteors.0.clone(),
-                    new_meteors.1,
-                )
-            }
-        }
+        _despawn(&mut commands, entity);
     }
 }
 
@@ -286,10 +292,44 @@ pub fn handle_meteor_intersections_with_wall(
 
 pub fn handle_weapon_collision(
     mut commands: Commands,
-    shot_query: Query<(&Weapon, &CollidingEntities)>,
-    mut meteor_query: Query<&mut Meteor>,
+    asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    sprite_loader: Res<XMLSpriteSheetLoader>,
+    shot_query: Query<(Entity, &Weapon, &RayHits)>,
+    mut meteor_query: Query<(&mut Meteor, &Transform)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    damage_lib::handle_collision_with_damage(&mut commands, &shot_query, &mut meteor_query);
+    let window = window_query.get_single().unwrap();
+    for (shot_entity, shot, hits) in shot_query.iter() {
+        if let Some(hit) = hits.iter().find(|&&hit| hit.time_of_impact <= 0.1) {
+            if let Ok((mut meteor, transform)) = meteor_query.get_mut(hit.entity) {
+                meteor.damage(shot);
+                if meteor.is_dead() {
+                    commands.entity(hit.entity).despawn();
+                    for new_meteors in create_new_meteors_after_destruction(
+                        &meteor,
+                        transform,
+                        &sprite_loader,
+                        window.width(),
+                        window.height(),
+                    )
+                    .iter()
+                    {
+                        spawn_meteor_at_position(
+                            &mut commands,
+                            &asset_server,
+                            &mut texture_atlases,
+                            &sprite_loader,
+                            new_meteors.0.clone(),
+                            new_meteors.1,
+                        )
+                    }
+                }
+            }
+            commands.entity(shot_entity).despawn();
+            break;
+        }
+    }
 }
 
 pub fn constrain_meteor_velocity(mut meteor_query: Query<&mut LinearVelocity, With<Meteor>>) {

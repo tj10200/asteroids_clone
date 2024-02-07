@@ -54,6 +54,11 @@ impl RigidBodyBehaviors {
         self
     }
 
+    pub fn with_rigid_body_type(&mut self, bt: RigidBody) -> &mut Self {
+        self.body_type = bt;
+        self
+    }
+
     pub fn add_to_entity(&self, entity: Entity, commands: &mut Commands) {
         commands
             .entity(entity)

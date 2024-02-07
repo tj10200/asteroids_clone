@@ -30,7 +30,7 @@ impl Plugin for MeteorPlugin {
                 (
                     handle_meteor_intersections_with_wall,
                     handle_weapon_collision,
-                    despawn_meteor,
+                    // despawn_meteor,
                     constrain_meteor_velocity,
                     tick_meteor_spawn_timer,
                     spawn_meteors_over_time,

@@ -34,6 +34,7 @@ fn main() {
         )
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins((PhysicsPlugins::default(), PhysicsDebugPlugin::default()))
+        // .add_plugins((PhysicsPlugins::default()))
         .add_plugins(WorldPlugin {})
         .add_plugins(PlayerShipPlugin {})
         .add_plugins(WeaponFirePlugin {})

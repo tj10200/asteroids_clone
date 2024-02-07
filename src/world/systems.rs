@@ -95,11 +95,45 @@ pub fn spawn_sprite_frame_at_position<T: Component, B: Bundle>(
     transform: Transform,
     extras: Option<B>,
 ) {
-    let texture_handle = asset_server.load(&sprite_loader.file);
-    let sprite = sprite_loader.get_sprite(sprite_name).unwrap();
     let collider = sprite_loader
         .get_sprite_collider(sprite_name, start_frame, true)
         .unwrap();
+    spawn_sprite_frame_at_position_with_collider(
+        commands,
+        asset_server,
+        texture_atlases,
+        sprite_loader,
+        sprite_name,
+        frame_cols,
+        frame_rows,
+        start_frame,
+        scale,
+        component,
+        physics_bundle,
+        transform,
+        extras,
+        collider,
+    )
+}
+
+pub fn spawn_sprite_frame_at_position_with_collider<T: Component, B: Bundle>(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    texture_atlases: &mut ResMut<Assets<TextureAtlas>>,
+    sprite_loader: &Res<XMLSpriteSheetLoader>,
+    sprite_name: &str,
+    frame_cols: usize,
+    frame_rows: usize,
+    start_frame: usize,
+    scale: f32,
+    component: T,
+    physics_bundle: &RigidBodyBehaviors,
+    transform: Transform,
+    extras: Option<B>,
+    collider: Collider,
+) {
+    let texture_handle = asset_server.load(&sprite_loader.file);
+    let sprite = sprite_loader.get_sprite(sprite_name).unwrap();
     let texture_atlas = TextureAtlas::from_grid(
         texture_handle,
         Vec2::new(sprite.width, sprite.height),
