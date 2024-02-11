@@ -5,6 +5,8 @@ pub mod components;
 pub mod resources;
 pub mod systems;
 
+use crate::game::states::SimulationState;
+use crate::states::AppState;
 use crate::world::resources::WorldCoordinates;
 use systems::*;
 
@@ -15,8 +17,12 @@ impl Plugin for WorldPlugin {
         app.insert_resource(WorldCoordinates {
             0: Default::default(),
         })
-        .add_systems(Startup, (spawn_camera, spawn_walls))
-        .add_systems(Update, handle_mapping_cursor_to_world);
+        .add_systems(OnEnter(AppState::Game), (spawn_camera, spawn_walls))
+        .add_systems(
+            Update,
+            (handle_mapping_cursor_to_world)
+                .run_if(in_state(AppState::Game).and_then(in_state(SimulationState::Running))),
+        );
     }
 }
 

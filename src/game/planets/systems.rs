@@ -1,9 +1,10 @@
-use super::{MAIN_PLANET_DENSITY, MAIN_PLANET_RADIUS};
-use crate::meteors::components::Meteor;
-use crate::player::components::PlayerShip;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_xpbd_2d::prelude::*;
+
+use super::{MAIN_PLANET_DENSITY, MAIN_PLANET_RADIUS};
+use crate::game::meteors::components::Meteor;
+use crate::game::player::components::PlayerShip;
 
 use super::components::*;
 

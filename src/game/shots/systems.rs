@@ -1,13 +1,16 @@
-use crate::player::components::PlayerShip;
-use crate::shots::components::*;
-use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
-use crate::world;
-use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
-use crate::world::systems as world_systems;
 use bevy::prelude::*;
-use bevy_xpbd_2d::math::{AsF32, Vector};
 use bevy_xpbd_2d::prelude::*;
 
+use crate::game::player::components::PlayerShip;
+use crate::game::shots::components::*;
+use crate::game::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::game::world::components::{BottomWall, LeftWall, RightWall, TopWall};
+
+pub fn despawn_weapons(mut commands: Commands, shot_query: Query<Entity, With<Weapon>>) {
+    for entity in shot_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
 pub fn player_fire_weapon(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -96,34 +99,6 @@ fn spawn_weapon_at_position(
             ColliderDensity(0.0),
             Mass(0.0),
         ));
-
-    // world_systems::spawn_sprite_frame_at_position_with_collider(
-    //     commands,
-    //     asset_server,
-    //     texture_atlases,
-    //     sprite_loader,
-    //     sprite_name,
-    //     weapon.frame_cols,
-    //     weapon.frame_rows,
-    //     weapon.start_frame,
-    //     scale,
-    //     weapon,
-    //     world::RigidBodyBehaviors::default()
-    //         .with_velocity(force.clone())
-    //         .with_density(0.)
-    //         .with_rigid_body_type(RigidBody::Kinematic),
-    //     shot_transform.clone(),
-    //     Some((
-    //         WeaponFireTimer { ..default() },
-    //         // RayCaster::new(Vec2::ZERO, Vec2::Y)
-    //         //     .with_solidness(true)
-    //         //     .with_query_filter(SpatialQueryFilter::new().without_entities([ship_entity])),
-    //
-    //         Sensor,
-    //     )),
-    //     ShapeCaster::new(collider, Vec2::ZERO, 0., Vec2::Y)
-    //         .with_ignore_origin_penetration(true),
-    // );
 }
 
 fn middle_shot_from_transform(transform: &Transform) -> Transform {

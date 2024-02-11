@@ -1,12 +1,12 @@
-use ::bevy::prelude::*;
 use bevy::ecs::system::Insert;
+use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_xpbd_2d::prelude::*;
 use rand::distributions::{Distribution, Uniform};
 use rand::{random, thread_rng};
 
-use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
-use crate::world::RigidBodyBehaviors;
+use crate::game::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::game::world::RigidBodyBehaviors;
 
 use super::components::*;
 use super::resources::*;

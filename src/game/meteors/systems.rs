@@ -1,18 +1,17 @@
-use crate::meteors::components::*;
-use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
-use crate::world;
-use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
-use crate::world::systems as world_systems;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_xpbd_2d::prelude::*;
+use rand::{random, Rng};
 use std::f32::consts::PI;
 
+use super::components::*;
 use super::*;
-use crate::damage::lib as damage_lib;
-use crate::damage::Damageable;
-use crate::shots::components::Weapon;
-use rand::{random, Rng};
+use crate::game::damage::Damageable;
+use crate::game::shots::components::Weapon;
+use crate::game::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::game::world;
+use crate::game::world::components::{BottomWall, LeftWall, RightWall, TopWall};
+use crate::game::world::systems as world_systems;
 
 pub fn spawn_meteors(
     mut commands: Commands,
@@ -212,14 +211,8 @@ fn create_new_meteors_after_destruction(
     res
 }
 
-pub fn despawn_meteor(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
-    sprite_loader: Res<XMLSpriteSheetLoader>,
-    mut meteor_query: Query<(Entity, &Meteor, &Transform)>,
-) {
-    for (entity, meteor, transform) in meteor_query.iter_mut() {
+pub fn despawn_meteor(mut commands: Commands, mut meteor_query: Query<Entity, With<Meteor>>) {
+    for entity in meteor_query.iter_mut() {
         _despawn(&mut commands, entity);
     }
 }

@@ -1,18 +1,19 @@
-use crate::damage::Damageable;
-use crate::meteors::components::Meteor;
-use crate::planets::components::Planet;
 use ::bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use bevy_xpbd_2d::prelude::*;
 use std::f32::consts::PI;
 
-use crate::damage::lib as damage_lib;
-use crate::shots::components::*;
-use crate::sprite_loader::mapper::XMLSpriteSheetLoader;
-use crate::world;
-use crate::world::components::{BottomWall, LeftWall, RightWall, TopWall};
-use crate::world::resources::WorldCoordinates;
-use crate::world::systems as world_systems;
+use crate::game::damage::Damageable;
+use crate::game::meteors::components::Meteor;
+use crate::game::planets::components::Planet;
+
+use crate::game::damage::lib as damage_lib;
+use crate::game::shots::components::*;
+use crate::game::sprite_loader::mapper::XMLSpriteSheetLoader;
+use crate::game::world;
+use crate::game::world::components::{BottomWall, LeftWall, RightWall, TopWall};
+use crate::game::world::resources::WorldCoordinates;
+use crate::game::world::systems as world_systems;
 
 use super::components::*;
 
