@@ -7,7 +7,7 @@ mod meteors;
 mod planets;
 pub mod player;
 mod shots;
-mod sprite_loader;
+pub(crate) mod sprite_loader;
 mod states;
 mod systems;
 pub mod util;

@@ -16,8 +16,8 @@ use crate::game::world::resources::WorldCoordinates;
 use crate::game::world::systems as world_systems;
 
 use super::components::*;
+use super::PLAYER_SHIP;
 
-pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
 pub const PLAYER_ROTATION_SPEED: f32 = 7.0;
 pub const PLAYER_ACCELERATION: f32 = 35.0;
 pub const PLAYER_SHIP_DENSITY: f32 = 0.9;

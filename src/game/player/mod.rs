@@ -7,6 +7,8 @@ use crate::game::states::SimulationState;
 use crate::states::AppState;
 use systems::*;
 
+pub const PLAYER_SHIP: &str = "playerShip2_orange.png";
+
 pub struct PlayerShipPlugin;
 
 impl Plugin for PlayerShipPlugin {

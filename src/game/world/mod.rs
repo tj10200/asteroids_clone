@@ -17,7 +17,6 @@ impl Plugin for WorldPlugin {
         app.insert_resource(WorldCoordinates {
             0: Default::default(),
         })
-        .add_systems(OnEnter(AppState::Game), (spawn_camera, spawn_walls))
         .add_systems(
             Update,
             (handle_mapping_cursor_to_world)

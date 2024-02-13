@@ -30,6 +30,12 @@ pub fn spawn_planets(mut commands: Commands, window_query: Query<&Window, With<P
         .insert(Collider::ball(radius));
 }
 
+pub fn despawn_planets(mut commands: Commands, planet_query: Query<Entity, With<Planet>>) {
+    for entity in planet_query.iter() {
+        commands.entity(entity).despawn();
+    }
+}
+
 pub fn render_planets(mut gizmos: Gizmos, planet_query: Query<&Planet>) {
     for planet in planet_query.iter() {
         gizmos.circle_2d(planet.coordinates, planet.radius, planet.color);
