@@ -14,6 +14,7 @@ use crate::game::world;
 use crate::game::world::components::{BottomWall, LeftWall, RightWall, TopWall};
 use crate::game::world::resources::WorldCoordinates;
 use crate::game::world::systems as world_systems;
+use crate::states::AppState;
 
 use super::components::*;
 use super::PLAYER_SHIP;
@@ -204,4 +205,32 @@ pub fn handle_player_collision_with_planet(
         &planet_query,
         &mut player_ship_query,
     );
+}
+
+pub fn handle_player_respawn_on_death(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+    texture_atlases: ResMut<Assets<TextureAtlas>>,
+    sprite_loader: Res<XMLSpriteSheetLoader>,
+    mut player_ship_query: Query<&PlayerShip>,
+    mut player_lives: ResMut<PlayerLives>,
+    mut app_state_next_state: ResMut<NextState<AppState>>,
+) {
+    if let Ok(player_ship) = player_ship_query.get_single() {
+        if player_ship.is_dead() {
+            player_lives.lives -= 1;
+            if player_lives.lives > 0 {
+                spawn_ship(
+                    commands,
+                    window_query,
+                    asset_server,
+                    texture_atlases,
+                    sprite_loader,
+                );
+            } else {
+                app_state_next_state.set(AppState::GameOver);
+            }
+        }
+    }
 }
