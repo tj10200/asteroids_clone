@@ -50,8 +50,8 @@ impl MeteorType {
     pub fn health(&self) -> f32 {
         match self {
             MeteorType::Big => 200f32,
-            MeteorType::Med => 100f32,
-            MeteorType::Small => 50f32,
+            MeteorType::Med => 50f32,
+            MeteorType::Small => 10f32,
         }
     }
 

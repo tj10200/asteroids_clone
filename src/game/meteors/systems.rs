@@ -300,7 +300,7 @@ pub fn handle_weapon_collision(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
     sprite_loader: Res<XMLSpriteSheetLoader>,
-    shot_query: Query<(Entity, &Weapon, &RayHits)>,
+    shot_query: Query<(Entity, &Weapon, &ShapeHits)>,
     mut meteor_query: Query<(&mut Meteor, &Transform)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {

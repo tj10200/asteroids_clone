@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_xpbd_2d::math::Vector;
 use bevy_xpbd_2d::prelude::*;
 
 use crate::game::player::components::PlayerShip;
@@ -74,9 +75,10 @@ fn spawn_weapon_at_position(
     let scale = weapon.scale;
     let shot_transform = middle_shot_from_transform(ship_transform);
     let speed = weapon.speed;
-    let collider = sprite_loader
+    let mut collider = sprite_loader
         .get_sprite_collider(sprite_name, 0, true)
         .unwrap();
+    collider.set_scale(Vector::splat(scale), 1);
     commands
         .spawn((
             SpriteSheetBundle {
@@ -90,11 +92,11 @@ fn spawn_weapon_at_position(
         .insert(WeaponFireTimer { ..default() })
         .insert((
             RigidBody::Kinematic,
-            // ShapeCaster::new(collider, Vec2::ZERO, 0., Vec2::Y)
-            //     .with_ignore_origin_penetration(true),
-            RayCaster::new(Vec2::ZERO, Vec2::Y)
-                .with_solidness(true)
-                .with_query_filter(SpatialQueryFilter::new().without_entities([ship_entity])),
+            ShapeCaster::new(collider, Vec2::ZERO, 0., Vec2::Y)
+                .with_ignore_origin_penetration(true),
+            // RayCaster::new(Vec2::ZERO, Vec2::Y)
+            //     .with_solidness(true)
+            //     .with_query_filter(SpatialQueryFilter::new().without_entities([ship_entity])),
             force,
             ColliderDensity(0.0),
             Mass(0.0),
