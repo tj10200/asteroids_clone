@@ -356,3 +356,20 @@ pub fn constrain_meteor_velocity(mut meteor_query: Query<&mut LinearVelocity, Wi
 pub fn tick_meteor_spawn_timer(mut timer: ResMut<MeteorSpawnTimer>, time: Res<Time>) {
     timer.timer.tick(time.delta());
 }
+
+pub fn render_meteor_health(mut gizmos: Gizmos, meteor_query: Query<(&Meteor, &Transform)>) {
+    for (meteor, transform) in meteor_query.iter() {
+        if !meteor.is_dead() {
+            let offset = 20f32;
+            let start = Vec2::new(
+                transform.translation.x - offset,
+                transform.translation.y - offset,
+            );
+            let end = Vec2::new(
+                transform.translation.x + meteor.health_end_offset(offset),
+                transform.translation.y - offset,
+            );
+            gizmos.line_2d(start, end, meteor.health_color());
+        }
+    }
+}

@@ -26,6 +26,7 @@ impl Plugin for PlayerShipPlugin {
                     handle_player_collision_with_meteor,
                     handle_player_collision_with_planet,
                     handle_player_respawn_on_death,
+                    render_player_health,
                 )
                     .run_if(in_state(AppState::Game).and_then(in_state(SimulationState::Running))),
             )

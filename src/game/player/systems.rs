@@ -234,3 +234,20 @@ pub fn handle_player_respawn_on_death(
         }
     }
 }
+
+pub fn render_player_health(mut gizmos: Gizmos, player_query: Query<(&PlayerShip, &Transform)>) {
+    if let Ok((player_ship, transform)) = player_query.get_single() {
+        if !player_ship.is_dead() {
+            let offset = 25f32;
+            let start = Vec2::new(
+                transform.translation.x - offset,
+                transform.translation.y - offset,
+            );
+            let end = Vec2::new(
+                transform.translation.x + offset,
+                transform.translation.y - offset,
+            );
+            gizmos.line_2d(start, end, Color::YELLOW_GREEN);
+        }
+    }
+}

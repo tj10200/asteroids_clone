@@ -139,6 +139,23 @@ impl Meteor {
         }
         vec
     }
+
+    pub fn health_color(&self) -> Color {
+        match self.health_pct() {
+            val if val > 0.75 => Color::LIME_GREEN,
+            val if val > 0.60 => Color::GREEN,
+            val if val > 0.40 => Color::YELLOW,
+            _ => Color::ORANGE_RED,
+        }
+    }
+
+    pub fn health_pct(&self) -> f32 {
+        self.health / self.meteor_type.health()
+    }
+
+    pub fn health_end_offset(&self, tot_dist: f32) -> f32 {
+        tot_dist * self.health_pct()
+    }
 }
 
 impl Damageable for Meteor {

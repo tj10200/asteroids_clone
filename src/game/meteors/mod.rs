@@ -46,6 +46,7 @@ impl Plugin for MeteorPlugin {
                     constrain_meteor_velocity,
                     tick_meteor_spawn_timer,
                     spawn_meteors_over_time,
+                    render_meteor_health,
                 )
                     .in_set(MeteorSystemSet::Movement)
                     .run_if(in_state(AppState::Game).and_then(in_state(SimulationState::Running))),
